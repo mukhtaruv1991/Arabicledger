@@ -1,8 +1,8 @@
-// المحتوى الكامل لملف client/src/pages/dashboard.tsx (محدّث)
+// المحتوى الكامل لملف client/src/pages/dashboard.tsx (محدّث وكامل)
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError, redirectToLogin } from "@/lib/authUtils"; // <-- تعديل هنا
+import { isUnauthorizedError, redirectToLogin } from "@/lib/authUtils";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,15 +23,15 @@ export default function Dashboard() {
   const { toast } = useToast();
   const companyId = 1; // For demo
 
-  const { data: financialSummary, error: summaryError } = useQuery({
+  const { data: financialSummary, isLoading: summaryLoading, error: summaryError } = useQuery({
     queryKey: ["/api/companies", companyId, "financial-summary"],
   });
 
-  const { data: recentEntries, error: entriesError } = useQuery({
+  const { data: recentEntries, isLoading: entriesLoading, error: entriesError } = useQuery({
     queryKey: ["/api/companies", companyId, "journal-entries"],
   });
 
-  const { data: accounts, error: accountsError } = useQuery({
+  const { data: accounts, isLoading: accountsLoading, error: accountsError } = useQuery({
     queryKey: ["/api/companies", companyId, "accounts"],
   });
 
@@ -44,7 +44,7 @@ export default function Dashboard() {
           description: "تم تسجيل خروجك. سيتم توجيهك لصفحة الدخول.",
           variant: "destructive",
         });
-        redirectToLogin(); // <-- تعديل هنا
+        redirectToLogin();
         return;
       }
     }
@@ -54,7 +54,6 @@ export default function Dashboard() {
   const entriesData = (recentEntries as any[]) || [];
   const accountsData = (accounts as any[]) || [];
 
-  // بقية الكود يبقى كما هو...
   return (
     <div className="min-h-screen flex bg-gray-50">
       <Sidebar />
@@ -124,7 +123,62 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </div>
-          {/* بقية الواجهة تبقى كما هي */}
+
+          {/* Charts and Tables Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-bold text-gray-900">الإيرادات والمصروفات</h3>
+                  <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <option>آخر ٦ أشهر</option>
+                    <option>آخر سنة</option>
+                  </select>
+                </div>
+                <FinancialChart data={summary} />
+              </CardContent>
+            </Card>
+            <Card data-testid="card-recent-transactions">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-bold text-gray-900">آخر المعاملات</h3>
+                  <Button variant="link" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                    عرض الكل
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  {entriesLoading ? (
+                    <div className="space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="animate-pulse"><div className="h-4 bg-gray-200 rounded w-24 mb-2"></div><div className="h-3 bg-gray-200 rounded w-16"></div></div>)}</div>
+                  ) : entriesData && entriesData.length > 0 ? (
+                    entriesData.slice(0, 4).map((entry: any) => {
+                      const isRevenue = entry.details.some((detail: any) => detail.account.type === 'revenue' && Number(detail.credit) > 0);
+                      return (
+                        <div key={entry.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg" data-testid={`transaction-${entry.id}`}>
+                          <div className="flex items-center space-x-3 space-x-reverse">
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isRevenue ? 'bg-green-100' : 'bg-red-100'}`}>
+                              {isRevenue ? <Plus className="text-green-600" /> : <TrendingDown className="text-red-600" />}
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900" data-testid={`transaction-description-${entry.id}`}>{entry.descriptionArabic || entry.description}</p>
+                              <p className="text-sm text-gray-500" data-testid={`transaction-date-${entry.id}`}>{new Date(entry.date).toLocaleDateString('ar-SA')}</p>
+                            </div>
+                          </div>
+                          <span className={`font-bold ${isRevenue ? 'text-green-600' : 'text-red-600'}`} data-testid={`transaction-amount-${entry.id}`}>
+                            {isRevenue ? '+' : '-'}{Number(entry.totalDebit).toLocaleString('ar-SA')} ر.س
+                          </span>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-8 text-gray-500" data-testid="empty-transactions">
+                      <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p>لا توجد معاملات حديثة</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </main>
       </div>
     </div>
