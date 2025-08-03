@@ -10,12 +10,13 @@ import {
   integer,
   boolean,
   serial,
+  pgEnum, // --- سنحتاج هذا لتعريف الأدوار ---
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-// Session storage table (required for Replit Auth)
+// Session storage table (required for session management)
 export const sessions = pgTable(
   "sessions",
   {
@@ -26,14 +27,21 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table (required for Replit Auth)
+// --- تعريف الأدوار (Roles) ---
+export const roleEnum = pgEnum('role', ['user', 'admin', 'superadmin']);
+
+// --- جدول المستخدمين المعدل بالكامل ---
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
+  fullName: varchar("full_name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  username: varchar("username", { length: 50 }).notNull().unique(),
+  phone: varchar("phone", { length: 20 }).unique(),
+  hashedPassword: text("hashed_password").notNull(),
+  role: roleEnum("role").default("user").notNull(),
+  organizationName: varchar("organization_name", { length: 255 }),
+  adminEmail: varchar("admin_email", { length: 255 }), // يستخدم فقط إذا كان الدور superadmin
   profileImageUrl: varchar("profile_image_url"),
-  role: varchar("role").default("user"), // admin, user, accountant
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -198,6 +206,16 @@ export const telegramSettingsRelations = relations(telegramSettings, ({ one }) =
 }));
 
 // Insert schemas
+export const insertUserSchema = createInsertSchema(users, {
+  email: z.string().email(),
+  // يمكنك إضافة المزيد من التحقق هنا إذا أردت
+}).omit({
+  id: true,
+  hashedPassword: true, // لا نريد أن نمرر كلمة المرور المشفرة مباشرة
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertCompanySchema = createInsertSchema(companies).omit({
   id: true,
   createdAt: true,
