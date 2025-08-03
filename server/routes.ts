@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-// --- التعديل الأول: استيراد من googleAuth بدلاً من replitAuth ---
-import { setupGoogleAuth, isAuthenticated } from "./googleAuth";
+// --- التعديل 1: استيراد نظام المصادقة المحلي الجديد ---
+import { setupLocalAuth, isAuthenticated } from "./localAuth";
 import { setupTelegramBot } from "./telegramBot";
 import {
   insertCompanySchema,
@@ -14,30 +14,31 @@ import {
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // --- التعديل الثاني: استدعاء setupGoogleAuth بدلاً من setupAuth ---
-  // Auth middleware
-  await setupGoogleAuth(app);
+  // --- التعديل 2: تفعيل نظام المصادقة المحلي ---
+  await setupLocalAuth(app);
 
   // Setup Telegram bot
   setupTelegramBot(app);
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      // --- التعديل الثالث: التأكد من أن بنية المستخدم متوافقة ---
-      const userId = req.user.id; // في googleAuth، المعرف موجود مباشرة في req.user.id
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
+  // --- التعديل 3: مسار جديد للحصول على بيانات المستخدم المسجل دخوله ---
+  // هذا المسار مهم جدًا للواجهة الأمامية لتعرف من هو المستخدم الحالي
+  app.get('/api/auth/me', isAuthenticated, async (req: any, res) => {
+    // req.user يأتي من passport بعد تسجيل الدخول بنجاح
+    // لا نرسل كلمة المرور المشفرة أبدًا إلى الواجهة الأمامية
+    const { hashedPassword, ...userWithoutPassword } = req.user;
+    res.json(userWithoutPassword);
   });
+
+
+  // --- كل المسارات التالية محمية الآن بواسطة isAuthenticated ---
+  // --- وهي تستخدم الآن req.user.id من نظامنا المحلي ---
 
   // Company routes
   app.get('/api/companies', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id;
+      // ملاحظة: الحقل createdBy في جدول الشركات هو من نوع varchar
+      // ومعرف المستخدم في جدول auth_users هو رقم. يجب تحويله إلى نص.
+      const userId = req.user.id.toString();
       const companies = await storage.getCompanies(userId);
       res.json(companies);
     } catch (error) {
@@ -62,7 +63,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/companies', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user.id.toString();
       const companyData = insertCompanySchema.parse({
         ...req.body,
         createdBy: userId,
@@ -92,7 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       await storage.deleteCompany(id);
       res.status(204).send();
-    } catch (error)
+    } catch (error) {
       console.error("Error deleting company:", error);
       res.status(500).json({ message: "Failed to delete company" });
     }
@@ -126,7 +127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/accounts', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user.id.toString();
       const accountData = insertAccountSchema.parse({
         ...req.body,
         createdBy: userId,
@@ -202,7 +203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/journal-entries', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user.id.toString();
       const { entry, details } = journalEntryWithDetailsSchema.parse(req.body);
       
       const totalDebit = details.reduce((sum, detail) => sum + Number(detail.debit || 0), 0);
@@ -301,7 +302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/telegram-settings', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user.id.toString();
       const settingsData = insertTelegramSettingsSchema.parse({
         ...req.body,
         createdBy: userId,
@@ -313,6 +314,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to save telegram settings" });
     }
   });
+
 
   const httpServer = createServer(app);
   return httpServer;
