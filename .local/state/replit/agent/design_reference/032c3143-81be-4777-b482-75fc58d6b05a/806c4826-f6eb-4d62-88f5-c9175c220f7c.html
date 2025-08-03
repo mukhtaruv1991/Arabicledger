@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام المحاسبة الذكي - لوحة التحكم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'arabic': ['Cairo', 'Segoe UI', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#1e40af',
+                        secondary: '#64748b',
+                        accent: '#059669',
+                        warning: '#d97706',
+                        danger: '#dc2626',
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Cairo', 'Segoe UI', sans-serif;
+        }
+        .chart-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .sidebar-link:hover {
+            background: rgba(30, 64, 175, 0.1);
+            border-right: 3px solid #1e40af;
+        }
+        .sidebar-link.active {
+            background: rgba(30, 64, 175, 0.15);
+            border-right: 3px solid #1e40af;
+            color: #1e40af;
+        }
+        .arabic-number {
+            direction: ltr;
+            unicode-bidi: embed;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-arabic">
+    <!-- @COMPONENT: MainLayout -->
+    <div class="min-h-screen flex">
+        <!-- @COMPONENT: Sidebar -->
+        <div class="w-64 bg-white shadow-lg border-l border-gray-200 flex flex-col">
+            <!-- Logo Section -->
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center space-x-3 space-x-reverse">
+                    <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-calculator text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-gray-900">نظام المحاسبة</h1>
+                        <p class="text-sm text-gray-500">الذكي</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <nav class="flex-1 py-4">
+                <div class="px-4 space-y-2">
+                    <a href="#" class="sidebar-link active flex items-center px-4 py-3 text-gray-700 rounded-lg transition-all duration-200">
+                        <i class="fas fa-tachometer-alt ml-3 text-lg"></i>
+                        <span class="font-medium">لوحة التحكم</span>
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-all duration-200">
+                        <i class="fas fa-list-alt ml-3 text-lg"></i>
+                        <span class="font-medium">دليل الحسابات</span>
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-all duration-200">
+                        <i class="fas fa-edit ml-3 text-lg"></i>
+                        <span class="font-medium">القيود المحاسبية</span>
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-all duration-200">
+                        <i class="fas fa-chart-bar ml-3 text-lg"></i>
+                        <span class="font-medium">التقارير المالية</span>
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-all duration-200">
+                        <i class="fas fa-building ml-3 text-lg"></i>
+                        <span class="font-medium">إدارة الشركات</span>
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-all duration-200">
+                        <i class="fas fa-users ml-3 text-lg"></i>
+                        <span class="font-medium">إدارة المستخدمين</span>
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg transition-all duration-200">
+                        <i class="fab fa-telegram-plane ml-3 text-lg"></i>
+                        <span class="font-medium">بوت تيليجرام</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- User Profile Section -->
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center space-x-3 space-x-reverse">
+                    <!-- Profile image placeholder -->
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100" alt="صورة المستخدم" class="w-10 h-10 rounded-full object-cover" />
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900" data-bind="user.name">أحمد محمد</p>
+                        <p class="text-xs text-gray-500">مدير النظام</p>
+                    </div>
+                    <button class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- @COMPONENT: MainContent -->
+        <div class="flex-1 flex flex-col">
+            <!-- @COMPONENT: TopBar -->
+            <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">لوحة التحكم</h2>
+                        <p class="text-gray-600">مرحباً بك في نظام المحاسبة الذكي</p>
+                    </div>
+                    <div class="flex items-center space-x-4 space-x-reverse">
+                        <!-- Theme Toggle -->
+                        <button class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
+                            <i class="fas fa-moon text-gray-600"></i>
+                        </button>
+                        <!-- Notifications -->
+                        <button class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors relative">
+                            <i class="fas fa-bell text-gray-600"></i>
+                            <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+                        </button>
+                        <!-- Current Date -->
+                        <div class="text-sm text-gray-500">
+                            <span class="arabic-number">٢٠٢٥/٠١/١٥</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <!-- @END_COMPONENT: TopBar -->
+
+            <!-- @COMPONENT: DashboardContent -->
+            <main class="flex-1 p-6 overflow-y-auto">
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- Revenue Card -->
+                    <div class="bg-white rounded-lg shadow-md p-6 card-hover transition-all duration-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">إجمالي الإيرادات</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-2">
+                                    <span class="arabic-number">٢٥٠,٠٠٠</span> ر.س
+                                </p>
+                                <p class="text-sm text-accent mt-1">
+                                    <i class="fas fa-arrow-up text-xs"></i>
+                                    <span class="arabic-number">+١٢%</span> من الشهر الماضي
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-accent bg-opacity-10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chart-line text-accent text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Expenses Card -->
+                    <div class="bg-white rounded-lg shadow-md p-6 card-hover transition-all duration-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">إجمالي المصروفات</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-2">
+                                    <span class="arabic-number">١٨٠,٠٠٠</span> ر.س
+                                </p>
+                                <p class="text-sm text-danger mt-1">
+                                    <i class="fas fa-arrow-down text-xs"></i>
+                                    <span class="arabic-number">-٥%</span> من الشهر الماضي
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-danger bg-opacity-10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chart-line-down text-danger text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profit Card -->
+                    <div class="bg-white rounded-lg shadow-md p-6 card-hover transition-all duration-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">صافي الربح</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-2">
+                                    <span class="arabic-number">٧٠,٠٠٠</span> ر.س
+                                </p>
+                                <p class="text-sm text-accent mt-1">
+                                    <i class="fas fa-arrow-up text-xs"></i>
+                                    <span class="arabic-number">+٢٨%</span> من الشهر الماضي
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-primary bg-opacity-10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-dollar-sign text-primary text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Accounts Card -->
+                    <div class="bg-white rounded-lg shadow-md p-6 card-hover transition-all duration-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">عدد الحسابات</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-2">
+                                    <span class="arabic-number">١٢٤</span>
+                                </p>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    <span class="arabic-number">+٨</span> حسابات جديدة
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-warning bg-opacity-10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-list-alt text-warning text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts and Tables Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- Financial Chart -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-bold text-gray-900">الإيرادات والمصروفات</h3>
+                            <select class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                                <option>آخر ٦ أشهر</option>
+                                <option>آخر سنة</option>
+                                <option>آخر ٣ سنوات</option>
+                            </select>
+                        </div>
+                        <!-- Placeholder for chart - in real implementation would use Chart.js or similar -->
+                        <div class="h-64 chart-container rounded-lg flex items-center justify-center text-white">
+                            <div class="text-center">
+                                <i class="fas fa-chart-area text-4xl mb-4 opacity-80"></i>
+                                <p class="text-lg font-medium">رسم بياني للإيرادات والمصروفات</p>
+                                <p class="text-sm opacity-80"><!-- @FUNCTIONALITY: Implement chart using Chart.js library --></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Transactions -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-bold text-gray-900">آخر المعاملات</h3>
+                            <a href="#" class="text-primary hover:text-primary-dark text-sm font-medium">عرض الكل</a>
+                        </div>
+                        <div class="space-y-4">
+                            <!-- @MAP: recentTransactions.map(transaction => ( -->
+                            <div class="flex items-center justify-between p-3 border border-gray-100 rounded-lg">
+                                <div class="flex items-center space-x-3 space-x-reverse">
+                                    <div class="w-10 h-10 bg-accent bg-opacity-10 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-plus text-accent"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900" data-bind="transaction.description">إيراد من المبيعات</p>
+                                        <p class="text-sm text-gray-500" data-bind="transaction.date">٢٠٢٥/٠١/١٥</p>
+                                    </div>
+                                </div>
+                                <span class="font-bold text-accent" data-bind="transaction.amount">+١٥,٠٠٠ ر.س</span>
+                            </div>
+
+                            <div class="flex items-center justify-between p-3 border border-gray-100 rounded-lg">
+                                <div class="flex items-center space-x-3 space-x-reverse">
+                                    <div class="w-10 h-10 bg-danger bg-opacity-10 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-minus text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">مصروف الإيجار</p>
+                                        <p class="text-sm text-gray-500">٢٠٢٥/٠١/١٤</p>
+                                    </div>
+                                </div>
+                                <span class="font-bold text-danger">-٨,٠٠٠ ر.س</span>
+                            </div>
+
+                            <div class="flex items-center justify-between p-3 border border-gray-100 rounded-lg">
+                                <div class="flex items-center space-x-3 space-x-reverse">
+                                    <div class="w-10 h-10 bg-accent bg-opacity-10 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-plus text-accent"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">إيراد من الخدمات</p>
+                                        <p class="text-sm text-gray-500">٢٠٢٥/٠١/١٣</p>
+                                    </div>
+                                </div>
+                                <span class="font-bold text-accent">+٢٢,٥٠٠ ر.س</span>
+                            </div>
+
+                            <div class="flex items-center justify-between p-3 border border-gray-100 rounded-lg">
+                                <div class="flex items-center space-x-3 space-x-reverse">
+                                    <div class="w-10 h-10 bg-danger bg-opacity-10 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-minus text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">مصروف الكهرباء</p>
+                                        <p class="text-sm text-gray-500">٢٠٢٥/٠١/١٢</p>
+                                    </div>
+                                </div>
+                                <span class="font-bold text-danger">-٣,٢٠٠ ر.س</span>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Summary Table -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-bold text-gray-900">ملخص الحسابات</h3>
+                        <div class="flex space-x-2 space-x-reverse">
+                            <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">
+                                <i class="fas fa-plus ml-2"></i>
+                                إضافة حساب جديد
+                            </button>
+                            <button class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-download ml-2"></i>
+                                تصدير
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-right py-3 px-4 font-medium text-gray-600">رمز الحساب</th>
+                                    <th class="text-right py-3 px-4 font-medium text-gray-600">اسم الحساب</th>
+                                    <th class="text-right py-3 px-4 font-medium text-gray-600">نوع الحساب</th>
+                                    <th class="text-right py-3 px-4 font-medium text-gray-600">الرصيد</th>
+                                    <th class="text-right py-3 px-4 font-medium text-gray-600">الحالة</th>
+                                    <th class="text-right py-3 px-4 font-medium text-gray-600">العمليات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- @MAP: accounts.map(account => ( -->
+                                <tr class="border-b border-gray-100 hover:bg-gray-50" data-mock="true">
+                                    <td class="py-3 px-4 arabic-number" data-bind="account.code">١١٠١</td>
+                                    <td class="py-3 px-4 font-medium" data-bind="account.name">النقدية في الصندوق</td>
+                                    <td class="py-3 px-4 text-gray-600" data-bind="account.type">أصول متداولة</td>
+                                    <td class="py-3 px-4 font-bold text-accent arabic-number" data-bind="account.balance">٤٥,٠٠٠ ر.س</td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent bg-opacity-10 text-accent">
+                                            نشط
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2 space-x-reverse">
+                                            <button class="text-primary hover:text-primary-dark">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-gray-400 hover:text-gray-600">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr class="border-b border-gray-100 hover:bg-gray-50" data-mock="true">
+                                    <td class="py-3 px-4 arabic-number">١١٠٢</td>
+                                    <td class="py-3 px-4 font-medium">البنك الأهلي</td>
+                                    <td class="py-3 px-4 text-gray-600">أصول متداولة</td>
+                                    <td class="py-3 px-4 font-bold text-accent arabic-number">١٢٠,٥٠٠ ر.س</td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent bg-opacity-10 text-accent">
+                                            نشط
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2 space-x-reverse">
+                                            <button class="text-primary hover:text-primary-dark">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-gray-400 hover:text-gray-600">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr class="border-b border-gray-100 hover:bg-gray-50" data-mock="true">
+                                    <td class="py-3 px-4 arabic-number">٢١٠١</td>
+                                    <td class="py-3 px-4 font-medium">حسابات دائنة</td>
+                                    <td class="py-3 px-4 text-gray-600">خصوم متداولة</td>
+                                    <td class="py-3 px-4 font-bold text-danger arabic-number">٢٥,٣٠٠ ر.س</td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent bg-opacity-10 text-accent">
+                                            نشط
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2 space-x-reverse">
+                                            <button class="text-primary hover:text-primary-dark">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-gray-400 hover:text-gray-600">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr class="border-b border-gray-100 hover:bg-gray-50" data-mock="true">
+                                    <td class="py-3 px-4 arabic-number">٤١٠١</td>
+                                    <td class="py-3 px-4 font-medium">إيرادات المبيعات</td>
+                                    <td class="py-3 px-4 text-gray-600">إيرادات</td>
+                                    <td class="py-3 px-4 font-bold text-accent arabic-number">٢٥٠,٠٠٠ ر.س</td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent bg-opacity-10 text-accent">
+                                            نشط
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2 space-x-reverse">
+                                            <button class="text-primary hover:text-primary-dark">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-gray-400 hover:text-gray-600">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- @END_MAP )) -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+                        <p class="text-sm text-gray-600">
+                            عرض <span class="arabic-number">١-٤</span> من <span class="arabic-number">١٢٤</span> حساب
+                        </p>
+                        <div class="flex space-x-2 space-x-reverse">
+                            <button class="px-3 py-1 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">
+                                السابق
+                            </button>
+                            <button class="px-3 py-1 bg-primary text-white rounded-lg text-sm">١</button>
+                            <button class="px-3 py-1 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">٢</button>
+                            <button class="px-3 py-1 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">٣</button>
+                            <button class="px-3 py-1 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">
+                                التالي
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-6">إجراءات سريعة</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-primary hover:bg-opacity-5 transition-all duration-200 group">
+                            <div class="text-center">
+                                <i class="fas fa-plus text-2xl text-gray-400 group-hover:text-primary mb-3"></i>
+                                <p class="font-medium text-gray-700 group-hover:text-primary">إضافة قيد جديد</p>
+                            </div>
+                        </button>
+
+                        <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-primary hover:bg-opacity-5 transition-all duration-200 group">
+                            <div class="text-center">
+                                <i class="fas fa-file-alt text-2xl text-gray-400 group-hover:text-primary mb-3"></i>
+                                <p class="font-medium text-gray-700 group-hover:text-primary">إنشاء تقرير</p>
+                            </div>
+                        </button>
+
+                        <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-primary hover:bg-opacity-5 transition-all duration-200 group">
+                            <div class="text-center">
+                                <i class="fas fa-building text-2xl text-gray-400 group-hover:text-primary mb-3"></i>
+                                <p class="font-medium text-gray-700 group-hover:text-primary">إضافة شركة</p>
+                            </div>
+                        </button>
+
+                        <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-primary hover:bg-opacity-5 transition-all duration-200 group">
+                            <div class="text-center">
+                                <i class="fab fa-telegram-plane text-2xl text-gray-400 group-hover:text-primary mb-3"></i>
+                                <p class="font-medium text-gray-700 group-hover:text-primary">إعداد البوت</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </main>
+            <!-- @END_COMPONENT: DashboardContent -->
+        </div>
+        <!-- @END_COMPONENT: MainContent -->
+    </div>
+    <!-- @END_COMPONENT: MainLayout -->
+
+    <!-- @COMPONENT: FloatingActionButton -->
+    <div class="fixed bottom-6 left-6">
+        <button class="w-14 h-14 bg-primary text-white rounded-full shadow-lg hover:bg-primary-dark hover:scale-110 transition-all duration-200 flex items-center justify-center">
+            <i class="fas fa-plus text-lg"></i>
+        </button>
+    </div>
+    <!-- @END_COMPONENT: FloatingActionButton -->
+
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        (function() {
+            // Simple theme toggle functionality (demo only)
+            const themeToggle = document.querySelector('.fa-moon').parentElement;
+            let isDark = false;
+            
+            themeToggle.addEventListener('click', function() {
+                isDark = !isDark;
+                const icon = this.querySelector('i');
+                if (isDark) {
+                    icon.className = 'fas fa-sun text-gray-600';
+                    document.body.classList.add('dark');
+                } else {
+                    icon.className = 'fas fa-moon text-gray-600';
+                    document.body.classList.remove('dark');
+                }
+            });
+
+            // Add click handlers for navigation (demo only)
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
