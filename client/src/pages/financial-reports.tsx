@@ -58,22 +58,15 @@ export default function FinancialReports() {
   }, [summaryError, accountsError, balancesError, toast]);
 
   // Prepare data with defaults
-  const summary = financialSummary || {
+  const summary = (financialSummary as any) || {
     totalRevenue: 0,
     totalExpenses: 0,
     netProfit: 0,
     totalAccounts: 0,
   };
   
-  const accountsData = accounts || [];
-  const balancesData = accountBalances || [];
-
-  const summary = financialSummary || {
-    totalRevenue: 0,
-    totalExpenses: 0,
-    netProfit: 0,
-    totalAccounts: 0,
-  };
+  const accountsData = (accounts as any[]) || [];
+  const balancesData = (accountBalances as any[]) || [];
 
   const handleExportReport = (format: string) => {
     toast({
@@ -189,8 +182,8 @@ export default function FinancialReports() {
       <div>
         <h4 className="text-lg font-semibold text-gray-900 mb-4">الأصول</h4>
         <div className="space-y-2">
-          {accounts?.filter((account: any) => account.type === 'assets').map((account: any) => {
-            const balance = accountBalances?.find((b: any) => b.accountId === account.id);
+          {accountsData.filter((account: any) => account.type === 'assets').map((account: any) => {
+            const balance = balancesData.find((b: any) => b.accountId === account.id);
             return (
               <div key={account.id} className="flex justify-between items-center py-2 border-b border-gray-100">
                 <span className="text-gray-700">{account.nameArabic || account.name}</span>
@@ -210,8 +203,8 @@ export default function FinancialReports() {
           <div>
             <h5 className="font-medium text-gray-800 mb-2">الخصوم</h5>
             <div className="space-y-2">
-              {accounts?.filter((account: any) => account.type === 'liabilities').map((account: any) => {
-                const balance = accountBalances?.find((b: any) => b.accountId === account.id);
+              {accountsData.filter((account: any) => account.type === 'liabilities').map((account: any) => {
+                const balance = balancesData.find((b: any) => b.accountId === account.id);
                 return (
                   <div key={account.id} className="flex justify-between items-center py-2 border-b border-gray-100">
                     <span className="text-gray-700">{account.nameArabic || account.name}</span>
@@ -227,8 +220,8 @@ export default function FinancialReports() {
           <div>
             <h5 className="font-medium text-gray-800 mb-2">حقوق الملكية</h5>
             <div className="space-y-2">
-              {accounts?.filter((account: any) => account.type === 'equity').map((account: any) => {
-                const balance = accountBalances?.find((b: any) => b.accountId === account.id);
+              {accountsData.filter((account: any) => account.type === 'equity').map((account: any) => {
+                const balance = balancesData.find((b: any) => b.accountId === account.id);
                 return (
                   <div key={account.id} className="flex justify-between items-center py-2 border-b border-gray-100">
                     <span className="text-gray-700">{account.nameArabic || account.name}</span>
@@ -257,8 +250,8 @@ export default function FinancialReports() {
           </tr>
         </thead>
         <tbody>
-          {accounts?.map((account: any) => {
-            const balance = accountBalances?.find((b: any) => b.accountId === account.id);
+          {accountsData.map((account: any) => {
+            const balance = balancesData.find((b: any) => b.accountId === account.id);
             const debitBalance = Number(balance?.debitBalance || 0);
             const creditBalance = Number(balance?.creditBalance || 0);
             
