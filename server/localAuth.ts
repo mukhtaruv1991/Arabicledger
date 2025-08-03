@@ -1,25 +1,18 @@
-// المحتوى الكامل والنهائي لملف server/localAuth.ts (لـ PostgreSQL)
-
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
 import type { Express, RequestHandler } from "express";
 import { storage } from "./storage";
 import session from 'express-session';
-// 1. استيراد الحزمة الصحيحة لـ PostgreSQL
 import connectPgSimple from 'connect-pg-simple';
-import pg from 'pg'; // استيراد pg لإنشاء pool اتصال
+import pg from 'pg';
 
-// --- إعداد الجلسة باستخدام PostgreSQL ---
 const PgStore = connectPgSimple(session);
 
-// إنشاء pool اتصال بقاعدة البيانات.
-// سيقرأ متغير البيئة DATABASE_URL الذي يوفره Railway تلقائيًا.
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    // هذا الإعداد ضروري للاتصال بقواعد بيانات Railway و Heroku وغيرها
-    rejectUnauthorized: false 
+    rejectUnauthorized: false
   }
 });
 
@@ -30,24 +23,21 @@ function getSession() {
   }
 
   return session({
-    // 2. استخدام مخزن PostgreSQL لتخزين الجلسات
     store: new PgStore({
-      pool: pool,                // استخدام pool الاتصال الذي أنشأناه
-      tableName: 'user_sessions' // اسم الجدول الذي سيتم إنشاؤه تلقائيًا لتخزين الجلسات
+      pool: pool,
+      tableName: 'user_sessions'
     }),
     secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24 * 30, // صلاحية الكوكي: 30 يومًا
+      maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
       sameSite: 'lax'
     }
   });
 }
-// --- نهاية إعداد الجلسة ---
-
 
 export async function setupLocalAuth(app: Express) {
   app.set("trust proxy", 1);
@@ -55,8 +45,6 @@ export async function setupLocalAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // --- باقي الكود يبقى كما هو تمامًا ---
-  
   passport.use(new LocalStrategy(
     {
       usernameField: 'login',
@@ -102,16 +90,8 @@ export async function setupLocalAuth(app: Express) {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
       const newUser = await storage.createAuthUser({
-        fullName,
-        email,
-        username,
-        phone,
-        hashedPassword,
-        role,
-        organizationName,
-        adminEmail
+        fullName, email, username, phone, hashedPassword, role, organizationName, adminEmail
       });
-      
       req.login(newUser, (err) => {
         if (err) { return next(err); }
         const { hashedPassword, ...userWithoutPassword } = newUser;
