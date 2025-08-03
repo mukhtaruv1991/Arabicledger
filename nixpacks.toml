@@ -1,11 +1,17 @@
-[providers]
-nodejs = "18"
+# nixpacks.toml (الصيغة الصحيحة)
 
 [phases.setup]
-nixPkgs = ["nodejs-18_x", "npm-9_x"]
+# نحدد حزم Nix التي نحتاجها. nodejs_20 هو إصدار مستقر وحديث.
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+# أمر تثبيت الاعتماديات. استخدام npm ci أفضل للخوادم لأنه أسرع ويستخدم package-lock.json.
+command = "npm ci"
 
 [phases.build]
-cmds = ["npm ci", "npm run build"]
+# أمر بناء المشروع من ملف package.json
+command = "npm run build"
 
-[phases.start]
-cmd = "npm start"
+[start]
+# أمر بدء تشغيل الخادم من ملف package.json
+command = "npm start"
