@@ -1,3 +1,4 @@
+// المحتوى الكامل لملف server/storage.ts
 import {
   users,
   companies,
@@ -6,7 +7,7 @@ import {
   journalEntryDetails,
   accountBalances,
   telegramSettings,
-  authUsers, // --- إضافة جديدة ---
+  authUsers,
   type User,
   type UpsertUser,
   type Company,
@@ -20,62 +21,46 @@ import {
   type AccountBalance,
   type TelegramSettings,
   type InsertTelegramSettings,
-  type AuthUser, // --- إضافة جديدة ---
+  type AuthUser,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, sum, sql, or } from "drizzle-orm"; // --- إضافة or ---
+import { eq, and, desc, asc, sum, sql, or } from "drizzle-orm";
 
 export interface IStorage {
-  // --- دوال جديدة للمصادقة المحلية ---
   findAuthUserByLogin(login: string): Promise<AuthUser | undefined>;
   findAuthUserById(id: number): Promise<AuthUser | undefined>;
   createAuthUser(userData: Omit<AuthUser, 'id' | 'createdAt' | 'updatedAt'>): Promise<AuthUser>;
-
-  // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
-
-  // Company operations
   getCompanies(userId: string): Promise<Company[]>;
   getCompany(id: number): Promise<Company | undefined>;
   createCompany(company: InsertCompany): Promise<Company>;
   updateCompany(id: number, company: Partial<InsertCompany>): Promise<Company>;
   deleteCompany(id: number): Promise<void>;
-
-  // Account operations
   getAccounts(companyId: number): Promise<Account[]>;
   getAccount(id: number): Promise<Account | undefined>;
   getAccountByCode(code: string, companyId: number): Promise<Account | undefined>;
   createAccount(account: InsertAccount): Promise<Account>;
   updateAccount(id: number, account: Partial<InsertAccount>): Promise<Account>;
   deleteAccount(id: number): Promise<void>;
-
-  // Journal Entry operations
   getJournalEntries(companyId: number, limit?: number): Promise<(JournalEntry & { details: (JournalEntryDetail & { account: Account })[] })[]>;
   getJournalEntry(id: number): Promise<(JournalEntry & { details: (JournalEntryDetail & { account: Account })[] }) | undefined>;
   createJournalEntry(entry: InsertJournalEntry, details: InsertJournalEntryDetail[]): Promise<JournalEntry>;
   updateJournalEntry(id: number, entry: Partial<InsertJournalEntry>, details?: InsertJournalEntryDetail[]): Promise<JournalEntry>;
   deleteJournalEntry(id: number): Promise<void>;
-
-  // Balance operations
   getAccountBalances(companyId: number): Promise<AccountBalance[]>;
   updateAccountBalance(accountId: number, companyId: number): Promise<void>;
-
-  // Financial summary operations
   getFinancialSummary(companyId: number): Promise<{
     totalRevenue: number;
     totalExpenses: number;
     netProfit: number;
     totalAccounts: number;
   }>;
-
-  // Telegram operations
   getTelegramSettings(companyId: number): Promise<TelegramSettings | undefined>;
   upsertTelegramSettings(settings: InsertTelegramSettings): Promise<TelegramSettings>;
 }
 
 export class DatabaseStorage implements IStorage {
-  // --- دوال المصادقة المحلية الجديدة ---
   async findAuthUserByLogin(login: string): Promise<AuthUser | undefined> {
     const [user] = await db.select().from(authUsers).where(
       or(
@@ -97,9 +82,6 @@ export class DatabaseStorage implements IStorage {
     return newUser;
   }
 
-  // --- بقية الدوال تبقى كما هي ---
-
-  // User operations (required for Replit Auth)
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
@@ -120,7 +102,6 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  // Company operations
   async getCompanies(userId: string): Promise<Company[]> {
     return await db.select().from(companies).where(eq(companies.createdBy, userId));
   }
@@ -148,7 +129,6 @@ export class DatabaseStorage implements IStorage {
     await db.delete(companies).where(eq(companies.id, id));
   }
 
-  // Account operations
   async getAccounts(companyId: number): Promise<Account[]> {
     return await db
       .select()
@@ -188,7 +168,6 @@ export class DatabaseStorage implements IStorage {
     await db.delete(accounts).where(eq(accounts.id, id));
   }
 
-  // Journal Entry operations
   async getJournalEntries(companyId: number, limit = 50): Promise<(JournalEntry & { details: (JournalEntryDetail & { account: Account })[] })[]> {
     const entries = await db
       .select()
@@ -309,8 +288,10 @@ export class DatabaseStorage implements IStorage {
 
       await db.insert(journalEntryDetails).values(entryDetails);
 
+      // يجب أن نحصل على companyId من updatedEntry
+      const companyId = updatedEntry.companyId;
       for (const detail of details) {
-        await this.updateAccountBalance(detail.accountId, updatedEntry.companyId);
+        await this.updateAccountBalance(detail.accountId, companyId);
       }
     }
 
@@ -324,12 +305,12 @@ export class DatabaseStorage implements IStorage {
     await db.delete(journalEntryDetails).where(eq(journalEntryDetails.journalEntryId, id));
     await db.delete(journalEntries).where(eq(journalEntries.id, id));
 
+    const companyId = entry.companyId;
     for (const detail of entry.details) {
-      await this.updateAccountBalance(detail.accountId, entry.companyId);
+      await this.updateAccountBalance(detail.accountId, companyId);
     }
   }
 
-  // Balance operations
   async getAccountBalances(companyId: number): Promise<AccountBalance[]> {
     return await db
       .select()
@@ -377,7 +358,6 @@ export class DatabaseStorage implements IStorage {
       });
   }
 
-  // Financial summary operations
   async getFinancialSummary(companyId: number): Promise<{
     totalRevenue: number;
     totalExpenses: number;
@@ -430,7 +410,6 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  // Telegram operations
   async getTelegramSettings(companyId: number): Promise<TelegramSettings | undefined> {
     const [settings] = await db
       .select()
