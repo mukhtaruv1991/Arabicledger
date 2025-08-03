@@ -1,8 +1,22 @@
+// المحتوى الكامل والمعدل لملف server/index.ts
+
 import express, { type Request, Response, NextFunction } from "express";
+// 1. استيراد حزمة cors التي أضفناها إلى package.json
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+
+// 2. تفعيل cors قبل أي مسارات أخرى
+// هذا هو التعديل الأهم لحل مشكلة "Unauthorized"
+app.use(cors({
+  // تأكد من أن هذا هو رابط موقعك الصحيح على Railway
+  origin: 'https://arabicledger-production.up.railway.app',
+  // هذا السطر يسمح للمتصفح بإرسال الكوكيز (بطاقة الهوية) مع الطلبات
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -44,7 +58,12 @@ app.use((req, res, next) => {
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    throw err;
+    // في بيئة الإنتاج، من الأفضل تسجيل الخطأ فقط بدلاً من إيقاف الخادم
+    if (app.get("env") !== "development") {
+      console.error(err);
+    } else {
+      throw err;
+    }
   });
 
   // importantly only setup vite in development and after
