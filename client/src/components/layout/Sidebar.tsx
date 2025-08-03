@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Calculator, BarChart3, FileText, Building2, Users, MessageSquare, Home, LogOut } from "lucide-react";
+import { Calculator, BarChart3, FileText, Building2, Users, MessageSquare, Home, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -11,13 +11,14 @@ const navigation = [
   { name: "إدارة الشركات", href: "/companies", icon: Building2, current: false },
   { name: "إدارة المستخدمين", href: "/users", icon: Users, current: false },
   { name: "بوت تيليجرام", href: "/telegram-bot", icon: MessageSquare, current: false },
+  { name: "إعدادات تلجرام", href: "/telegram-settings", icon: Settings, current: false },
 ];
 
 export default function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
   
-  const userData = user || {};
+  const userData = (user as any) || {};
 
   return (
     <div className="w-64 bg-white shadow-lg border-l border-gray-200 flex flex-col" data-testid="sidebar">

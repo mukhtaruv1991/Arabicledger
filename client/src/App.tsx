@@ -13,6 +13,7 @@ import FinancialReports from "@/pages/financial-reports";
 import Companies from "@/pages/companies";
 import Users from "@/pages/users";
 import TelegramBot from "@/pages/telegram-bot";
+import TelegramSettings from "@/pages/telegram-settings";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -30,6 +31,7 @@ function Router() {
           <Route path="/companies" component={Companies} />
           <Route path="/users" component={Users} />
           <Route path="/telegram-bot" component={TelegramBot} />
+          <Route path="/telegram-settings" component={TelegramSettings} />
         </>
       )}
       <Route component={NotFound} />

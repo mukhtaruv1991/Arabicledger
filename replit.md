@@ -2,6 +2,25 @@
 
 This is an Arabic-language accounting system built with React, Express.js, and PostgreSQL. The system provides comprehensive financial management capabilities including chart of accounts, journal entries, financial reporting, and company management. It features a modern UI built with Radix UI components and Tailwind CSS, supporting right-to-left (RTL) Arabic text direction. The application includes Telegram bot integration for mobile accounting operations and uses Replit's authentication system for user management.
 
+## Recent Changes (January 2025)
+
+✓ **Database Setup**: Created PostgreSQL database and pushed complete schema with all accounting tables
+✓ **Application Deployment**: Fixed all compilation errors and successfully deployed the application  
+✓ **Telegram Bot Integration**: Implemented comprehensive Arabic Telegram bot with commands for:
+  - Financial summaries (/الملخص)
+  - Account listings (/الحسابات) 
+  - Journal entries (/القيود)
+  - Financial reports (/التقارير)
+  - Help system (/المساعدة)
+✓ **Bot Configuration UI**: Added complete Telegram settings page with webhook management
+✓ **Navigation Enhancement**: Added Telegram settings to main navigation sidebar
+
+## Deployment Status
+- **Application**: Ready for deployment on Replit Deployments
+- **Database**: PostgreSQL provisioned and operational
+- **Bot Integration**: Configured with Arabic language support
+- **Environment**: TELEGRAM_BOT_TOKEN configured
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
