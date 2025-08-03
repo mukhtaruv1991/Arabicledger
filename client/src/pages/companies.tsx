@@ -154,4 +154,35 @@ export default function Companies() {
                             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"><Building2 className="w-6 h-6 text-blue-600" /></div>
                             <div><h3 className="font-bold text-gray-900">{company.nameArabic || company.name}</h3>{company.nameArabic && company.name && <p className="text-sm text-gray-500">{company.name}</p>}</div>
                           </div>
-                          <span className={`inline-flex items-center px-2.5 py-0.5
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${company.isActive ? 'status-active' : 'status-inactive'}`}>
+                            {company.isActive ? 'نشط' : 'غير نشط'}
+                          </span>
+                        </div>
+                        <div className="space-y-2 mb-4">
+                          {company.taxNumber && <div className="flex items-center text-sm text-gray-600"><Hash className="w-4 h-4 ml-2" /><span>الرقم الضريبي: {company.taxNumber}</span></div>}
+                          {company.phone && <div className="flex items-center text-sm text-gray-600"><Phone className="w-4 h-4 ml-2" /><span>{company.phone}</span></div>}
+                          {company.email && <div className="flex items-center text-sm text-gray-600"><Mail className="w-4 h-4 ml-2" /><span>{company.email}</span></div>}
+                          {(company.addressArabic || company.address) && <div className="flex items-start text-sm text-gray-600"><MapPin className="w-4 h-4 ml-2 mt-0.5" /><span>{company.addressArabic || company.address}</span></div>}
+                        </div>
+                        <div className="flex space-x-2 space-x-reverse">
+                          <Button variant="outline" size="sm" onClick={() => { setEditingCompany(company); setIsDialogOpen(true); }} className="text-blue-600 hover:text-blue-700"><Edit className="w-4 h-4 ml-1" />تعديل</Button>
+                          <Button variant="outline" size="sm" onClick={() => { if (confirm("هل أنت متأكد من حذف هذه الشركة؟")) { deleteCompanyMutation.mutate(company.id); } }} className="text-red-600 hover:text-red-700"><Trash2 className="w-4 h-4 ml-1" />حذف</Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-12 text-gray-500">
+                    <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                    <p className="text-lg font-medium">لا توجد شركات</p>
+                    <p className="text-sm mt-1">قم بإضافة شركة جديدة للبدء</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    </div>
+  );
+}
