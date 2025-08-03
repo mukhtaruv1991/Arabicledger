@@ -1,3 +1,4 @@
+// المحتوى الكامل لملف server/routes.ts
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -173,7 +174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/companies/:companyId/journal-entries', isAuthenticated, async (req: any, res) => {
     try {
       const companyId = parseInt(req.params.companyId);
-      const limit = req.query.limit ? parseInt(req.query.limit) : undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
       const entries = await storage.getJournalEntries(companyId, limit);
       res.json(entries);
     } catch (error) {
