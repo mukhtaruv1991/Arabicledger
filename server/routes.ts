@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+// --- التعديل الأول: استيراد من googleAuth بدلاً من replitAuth ---
+import { setupGoogleAuth, isAuthenticated } from "./googleAuth";
 import { setupTelegramBot } from "./telegramBot";
 import {
   insertCompanySchema,
@@ -13,8 +14,9 @@ import {
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // --- التعديل الثاني: استدعاء setupGoogleAuth بدلاً من setupAuth ---
   // Auth middleware
-  await setupAuth(app);
+  await setupGoogleAuth(app);
 
   // Setup Telegram bot
   setupTelegramBot(app);
@@ -22,7 +24,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // --- التعديل الثالث: التأكد من أن بنية المستخدم متوافقة ---
+      const userId = req.user.id; // في googleAuth، المعرف موجود مباشرة في req.user.id
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -34,7 +37,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Company routes
   app.get('/api/companies', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const companies = await storage.getCompanies(userId);
       res.json(companies);
     } catch (error) {
@@ -59,7 +62,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/companies', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const companyData = insertCompanySchema.parse({
         ...req.body,
         createdBy: userId,
@@ -89,7 +92,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       await storage.deleteCompany(id);
       res.status(204).send();
-    } catch (error) {
+    } catch (error)
       console.error("Error deleting company:", error);
       res.status(500).json({ message: "Failed to delete company" });
     }
@@ -123,13 +126,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/accounts', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const accountData = insertAccountSchema.parse({
         ...req.body,
         createdBy: userId,
       });
       
-      // Check if account code already exists
       const existingAccount = await storage.getAccountByCode(accountData.code, accountData.companyId);
       if (existingAccount) {
         return res.status(400).json({ message: "Account code already exists" });
@@ -200,10 +202,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/journal-entries', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { entry, details } = journalEntryWithDetailsSchema.parse(req.body);
       
-      // Validate that total debits equal total credits
       const totalDebit = details.reduce((sum, detail) => sum + Number(detail.debit || 0), 0);
       const totalCredit = details.reduce((sum, detail) => sum + Number(detail.credit || 0), 0);
       
@@ -231,7 +232,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const { entry, details } = journalEntryWithDetailsSchema.parse(req.body);
       
-      // Validate that total debits equal total credits
       const totalDebit = details.reduce((sum, detail) => sum + Number(detail.debit || 0), 0);
       const totalCredit = details.reduce((sum, detail) => sum + Number(detail.credit || 0), 0);
       
@@ -301,7 +301,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/telegram-settings', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const settingsData = insertTelegramSettingsSchema.parse({
         ...req.body,
         createdBy: userId,
