@@ -1,3 +1,4 @@
+// المحتوى الكامل لملف shared/schema.ts
 import { sql } from 'drizzle-orm';
 import {
   index,
@@ -10,17 +11,13 @@ import {
   integer,
   boolean,
   serial,
-  pgEnum, // سنحتاج هذا
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-// ==================================================================
-// == كل الكود الموجود هنا يبقى كما هو تمامًا بدون أي تغيير ==
-// ==================================================================
-
-// Session storage table (required for Replit Auth)
+// الكود القديم يبقى كما هو
 export const sessions = pgTable(
   "sessions",
   {
@@ -31,20 +28,18 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table (required for Replit Auth)
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  role: varchar("role").default("user"), // admin, user, accountant
+  role: varchar("role").default("user"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Companies table
 export const companies = pgTable("companies", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
@@ -61,14 +56,13 @@ export const companies = pgTable("companies", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Chart of Accounts
 export const accounts = pgTable("accounts", {
   id: serial("id").primaryKey(),
   code: varchar("code", { length: 20 }).notNull().unique(),
   name: varchar("name", { length: 255 }).notNull(),
   nameArabic: varchar("name_arabic", { length: 255 }).notNull(),
-  type: varchar("type", { length: 50 }).notNull(), // assets, liabilities, equity, revenue, expenses
-  subType: varchar("sub_type", { length: 50 }), // current_assets, fixed_assets, etc.
+  type: varchar("type", { length: 50 }).notNull(),
+  subType: varchar("sub_type", { length: 50 }),
   parentId: integer("parent_id"),
   level: integer("level").default(1),
   isParent: boolean("is_parent").default(false),
@@ -79,7 +73,6 @@ export const accounts = pgTable("accounts", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Journal Entries
 export const journalEntries = pgTable("journal_entries", {
   id: serial("id").primaryKey(),
   entryNumber: varchar("entry_number", { length: 50 }).notNull().unique(),
@@ -95,7 +88,6 @@ export const journalEntries = pgTable("journal_entries", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Journal Entry Details
 export const journalEntryDetails = pgTable("journal_entry_details", {
   id: serial("id").primaryKey(),
   journalEntryId: integer("journal_entry_id").notNull(),
@@ -107,7 +99,6 @@ export const journalEntryDetails = pgTable("journal_entry_details", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Account Balances (for quick access)
 export const accountBalances = pgTable("account_balances", {
   id: serial("id").primaryKey(),
   accountId: integer("account_id").notNull(),
@@ -118,24 +109,19 @@ export const accountBalances = pgTable("account_balances", {
   lastUpdated: timestamp("last_updated").defaultNow(),
 });
 
-// Telegram Bot Settings
 export const telegramSettings = pgTable("telegram_settings", {
   id: serial("id").primaryKey(),
   companyId: integer("company_id").notNull(),
   botToken: varchar("bot_token", { length: 255 }),
   webhookUrl: varchar("webhook_url", { length: 500 }),
   isActive: boolean("is_active").default(false),
-  allowedUsers: text("allowed_users"), // JSON array of user IDs
+  allowedUsers: text("allowed_users"),
   createdBy: varchar("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-
-// ==================================================================
-// == هنا تبدأ الإضافات الجديدة والآمنة ==
-// ==================================================================
-
+// --- الإضافات الجديدة والآمنة ---
 export const authRoleEnum = pgEnum('auth_role', ['user', 'admin', 'superadmin']);
 
 export const authUsers = pgTable("auth_users", {
@@ -152,12 +138,7 @@ export const authUsers = pgTable("auth_users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-
-// ==================================================================
-// == كل الكود الموجود هنا يبقى كما هو تمامًا بدون أي تغيير ==
-// ==================================================================
-
-// Relations
+// الكود القديم يبقى كما هو
 export const usersRelations = relations(users, ({ many }) => ({
   companies: many(companies),
   journalEntries: many(journalEntries),
@@ -228,7 +209,6 @@ export const telegramSettingsRelations = relations(telegramSettings, ({ one }) =
   }),
 }));
 
-// Insert schemas
 export const insertCompanySchema = createInsertSchema(companies).omit({
   id: true,
   createdAt: true,
@@ -258,25 +238,18 @@ export const insertTelegramSettingsSchema = createInsertSchema(telegramSettings)
   updatedAt: true,
 });
 
-// Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
-
 export type InsertCompany = z.infer<typeof insertCompanySchema>;
 export type Company = typeof companies.$inferSelect;
-
 export type InsertAccount = z.infer<typeof insertAccountSchema>;
 export type Account = typeof accounts.$inferSelect;
-
 export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;
 export type JournalEntry = typeof journalEntries.$inferSelect;
-
 export type InsertJournalEntryDetail = z.infer<typeof insertJournalEntryDetailSchema>;
 export type JournalEntryDetail = typeof journalEntryDetails.$inferSelect;
-
 export type InsertTelegramSettings = z.infer<typeof insertTelegramSettingsSchema>;
 export type TelegramSettings = typeof telegramSettings.$inferSelect;
-
 export type AccountBalance = typeof accountBalances.$inferSelect;
 
 // --- أنواع ومخططات الإدخال الجديدة والآمنة ---
