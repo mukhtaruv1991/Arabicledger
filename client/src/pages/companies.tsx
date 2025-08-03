@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -19,22 +19,24 @@ export default function Companies() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<any>(null);
 
-  const { data: companies, isLoading } = useQuery({
+  const { data: companies, isLoading, error } = useQuery({
     queryKey: ["/api/companies"],
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "غير مخول",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-    },
   });
+
+  // Handle errors with useEffect
+  useEffect(() => {
+    if (error && isUnauthorizedError(error)) {
+      toast({
+        title: "غير مخول",
+        description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+      return;
+    }
+  }, [error, toast]);
 
   const createCompanyMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -121,7 +123,9 @@ export default function Companies() {
     }
   };
 
-  const filteredCompanies = companies?.filter((company: any) => {
+  const companiesData = companies || [];
+  
+  const filteredCompanies = companiesData.filter((company: any) => {
     return (
       company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       company.nameArabic.toLowerCase().includes(searchTerm.toLowerCase()) ||

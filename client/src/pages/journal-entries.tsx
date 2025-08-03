@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -21,27 +21,19 @@ export default function JournalEntries() {
   // For demo, using company ID 1
   const companyId = 1;
 
-  const { data: journalEntries, isLoading } = useQuery({
+  const { data: journalEntries, isLoading, error: entriesError } = useQuery({
     queryKey: ["/api/companies", companyId, "journal-entries"],
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "غير مخول",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-    },
   });
 
-  const { data: accounts } = useQuery({
+  const { data: accounts, error: accountsError } = useQuery({
     queryKey: ["/api/companies", companyId, "accounts"],
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
+  });
+
+  // Handle errors with useEffect
+  useEffect(() => {
+    const errors = [entriesError, accountsError].filter(Boolean);
+    for (const error of errors) {
+      if (error && isUnauthorizedError(error)) {
         toast({
           title: "غير مخول",
           description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
@@ -52,8 +44,8 @@ export default function JournalEntries() {
         }, 500);
         return;
       }
-    },
-  });
+    }
+  }, [entriesError, accountsError, toast]);
 
   const createEntryMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -132,7 +124,10 @@ export default function JournalEntries() {
     }
   };
 
-  const filteredEntries = journalEntries?.filter((entry: any) => {
+  const entriesData = journalEntries || [];
+  const accountsData = accounts || [];
+  
+  const filteredEntries = entriesData.filter((entry: any) => {
     return (
       entry.entryNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entry.description.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -35,28 +35,17 @@ export default function TelegramBot() {
 
   const { data: telegramSettings, isLoading } = useQuery({
     queryKey: ["/api/companies", companyId, "telegram-settings"],
-    onSuccess: (data: any) => {
-      if (data) {
-        setBotToken(data.botToken || "");
-        setWebhookUrl(data.webhookUrl || "");
-        setAllowedUsers(data.allowedUsers || "");
-        setIsActive(data.isActive || false);
-      }
-    },
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "غير مخول",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-    },
   });
+
+  // Update form fields when data loads
+  useEffect(() => {
+    if (telegramSettings) {
+      setBotToken(telegramSettings.botToken || "");
+      setWebhookUrl(telegramSettings.webhookUrl || "");
+      setAllowedUsers(telegramSettings.allowedUsers || "");
+      setIsActive(telegramSettings.isActive || false);
+    }
+  }, [telegramSettings]);
 
   const saveSettingsMutation = useMutation({
     mutationFn: async (data: any) => {

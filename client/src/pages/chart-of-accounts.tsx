@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -23,22 +23,24 @@ export default function ChartOfAccounts() {
   // For demo, using company ID 1
   const companyId = 1;
 
-  const { data: accounts, isLoading } = useQuery({
+  const { data: accounts, isLoading, error } = useQuery({
     queryKey: ["/api/companies", companyId, "accounts"],
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "غير مخول",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-    },
   });
+
+  // Handle errors with useEffect
+  useEffect(() => {
+    if (error && isUnauthorizedError(error)) {
+      toast({
+        title: "غير مخول",
+        description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+      return;
+    }
+  }, [error, toast]);
 
   const createAccountMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -124,7 +126,9 @@ export default function ChartOfAccounts() {
     }
   };
 
-  const filteredAccounts = accounts?.filter((account: any) => {
+  const accountsData = accounts || [];
+  
+  const filteredAccounts = accountsData.filter((account: any) => {
     const matchesSearch = 
       account.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

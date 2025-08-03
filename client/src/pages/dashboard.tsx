@@ -24,44 +24,23 @@ export default function Dashboard() {
   // Get current company (for demo, we'll use company ID 1)
   const companyId = 1;
 
-  const { data: financialSummary, isLoading: summaryLoading } = useQuery({
+  const { data: financialSummary, isLoading: summaryLoading, error: summaryError } = useQuery({
     queryKey: ["/api/companies", companyId, "financial-summary"],
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "غير مخول",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-    },
   });
 
-  const { data: recentEntries, isLoading: entriesLoading } = useQuery({
+  const { data: recentEntries, isLoading: entriesLoading, error: entriesError } = useQuery({
     queryKey: ["/api/companies", companyId, "journal-entries"],
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "غير مخول",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-    },
   });
 
-  const { data: accounts, isLoading: accountsLoading } = useQuery({
+  const { data: accounts, isLoading: accountsLoading, error: accountsError } = useQuery({
     queryKey: ["/api/companies", companyId, "accounts"],
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
+  });
+
+  // Handle errors with useEffect
+  useEffect(() => {
+    const errors = [summaryError, entriesError, accountsError].filter(Boolean);
+    for (const error of errors) {
+      if (error && isUnauthorizedError(error)) {
         toast({
           title: "غير مخول",
           description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
@@ -72,8 +51,8 @@ export default function Dashboard() {
         }, 500);
         return;
       }
-    },
-  });
+    }
+  }, [summaryError, entriesError, accountsError, toast]);
 
   const summary = financialSummary || {
     totalRevenue: 0,
@@ -81,6 +60,9 @@ export default function Dashboard() {
     netProfit: 0,
     totalAccounts: 0,
   };
+
+  const entriesData = recentEntries || [];
+  const accountsData = accounts || [];
 
   return (
     <div className="min-h-screen flex bg-gray-50">
@@ -220,8 +202,8 @@ export default function Dashboard() {
                         </div>
                       ))}
                     </div>
-                  ) : recentEntries && recentEntries.length > 0 ? (
-                    recentEntries.slice(0, 4).map((entry: any) => {
+                  ) : entriesData && entriesData.length > 0 ? (
+                    entriesData.slice(0, 4).map((entry: any) => {
                       const isRevenue = entry.details.some((detail: any) => 
                         detail.account.type === 'revenue' && Number(detail.credit) > 0
                       );
@@ -302,8 +284,8 @@ export default function Dashboard() {
                           <td className="py-3 px-4"><div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div></td>
                         </tr>
                       ))
-                    ) : accounts && accounts.length > 0 ? (
-                      accounts.slice(0, 4).map((account: any) => (
+                    ) : accountsData && accountsData.length > 0 ? (
+                      accountsData.slice(0, 4).map((account: any) => (
                         <tr key={account.id} className="border-b border-gray-100 hover:bg-gray-50" data-testid={`account-row-${account.id}`}>
                           <td className="py-3 px-4 arabic-number" data-testid={`account-code-${account.id}`}>{account.code}</td>
                           <td className="py-3 px-4 font-medium" data-testid={`account-name-${account.id}`}>
@@ -350,10 +332,10 @@ export default function Dashboard() {
                 </table>
               </div>
 
-              {accounts && accounts.length > 4 && (
+              {accountsData && accountsData.length > 4 && (
                 <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
                   <p className="text-sm text-gray-600">
-                    عرض <span className="arabic-number">١-٤</span> من <span className="arabic-number">{accounts.length}</span> حساب
+                    عرض <span className="arabic-number">١-٤</span> من <span className="arabic-number">{accountsData.length}</span> حساب
                   </p>
                   <div className="flex space-x-2 space-x-reverse">
                     <Button variant="outline" size="sm">السابق</Button>

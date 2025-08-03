@@ -16,6 +16,8 @@ const navigation = [
 export default function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
+  
+  const userData = user || {};
 
   return (
     <div className="w-64 bg-white shadow-lg border-l border-gray-200 flex flex-col" data-testid="sidebar">
@@ -60,17 +62,17 @@ export default function Sidebar() {
       <div className="p-4 border-t border-gray-200" data-testid="user-profile">
         <div className="flex items-center space-x-3 space-x-reverse">
           <img
-            src={user?.profileImageUrl || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100"}
+            src={userData?.profileImageUrl || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100"}
             alt="صورة المستخدم"
             className="w-10 h-10 rounded-full object-cover"
             data-testid="user-avatar"
           />
           <div className="flex-1">
             <p className="text-sm font-medium text-gray-900" data-testid="user-name">
-              {user?.firstName || "مستخدم"} {user?.lastName || ""}
+              {userData?.firstName || "مستخدم"} {userData?.lastName || ""}
             </p>
             <p className="text-xs text-gray-500" data-testid="user-role">
-              {user?.role === "admin" ? "مدير النظام" : "مستخدم"}
+              {userData?.role === "admin" ? "مدير النظام" : "مستخدم"}
             </p>
           </div>
           <Button

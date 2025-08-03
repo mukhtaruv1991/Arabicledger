@@ -16,6 +16,8 @@ export default function UsersManagement() {
   const { user: currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+  
+  const userData = currentUser || {};
 
   // Mock users data since we don't have a users API endpoint
   const mockUsers = [
@@ -243,7 +245,7 @@ export default function UsersManagement() {
                               <p className="font-medium text-gray-900" data-testid={`user-name-${user.id}`}>
                                 {user.firstName} {user.lastName}
                               </p>
-                              {user.id === currentUser?.id && (
+                              {user.id === userData?.id && (
                                 <span className="text-xs text-blue-600">أنت</span>
                               )}
                             </div>
@@ -272,7 +274,7 @@ export default function UsersManagement() {
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex space-x-2 space-x-reverse">
-                            {currentUser?.role === 'admin' && user.id !== currentUser?.id && (
+                            {userData?.role === 'admin' && user.id !== userData?.id && (
                               <>
                                 <Select
                                   value={user.role}
@@ -298,7 +300,7 @@ export default function UsersManagement() {
                                 </Button>
                               </>
                             )}
-                            {(currentUser?.role !== 'admin' || user.id === currentUser?.id) && (
+                            {(userData?.role !== 'admin' || user.id === userData?.id) && (
                               <span className="text-sm text-gray-500">لا توجد عمليات متاحة</span>
                             )}
                           </div>

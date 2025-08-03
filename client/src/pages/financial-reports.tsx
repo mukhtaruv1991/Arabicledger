@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -27,44 +27,23 @@ export default function FinancialReports() {
   // For demo, using company ID 1
   const companyId = 1;
 
-  const { data: financialSummary, isLoading: summaryLoading } = useQuery({
+  const { data: financialSummary, isLoading: summaryLoading, error: summaryError } = useQuery({
     queryKey: ["/api/companies", companyId, "financial-summary"],
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "غير مخول",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-    },
   });
 
-  const { data: accounts, isLoading: accountsLoading } = useQuery({
+  const { data: accounts, isLoading: accountsLoading, error: accountsError } = useQuery({
     queryKey: ["/api/companies", companyId, "accounts"],
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "غير مخول",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-    },
   });
 
-  const { data: accountBalances, isLoading: balancesLoading } = useQuery({
+  const { data: accountBalances, isLoading: balancesLoading, error: balancesError } = useQuery({
     queryKey: ["/api/companies", companyId, "account-balances"],
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
+  });
+
+  // Handle errors with useEffect
+  useEffect(() => {
+    const errors = [summaryError, accountsError, balancesError].filter(Boolean);
+    for (const error of errors) {
+      if (error && isUnauthorizedError(error)) {
         toast({
           title: "غير مخول",
           description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
@@ -75,8 +54,19 @@ export default function FinancialReports() {
         }, 500);
         return;
       }
-    },
-  });
+    }
+  }, [summaryError, accountsError, balancesError, toast]);
+
+  // Prepare data with defaults
+  const summary = financialSummary || {
+    totalRevenue: 0,
+    totalExpenses: 0,
+    netProfit: 0,
+    totalAccounts: 0,
+  };
+  
+  const accountsData = accounts || [];
+  const balancesData = accountBalances || [];
 
   const summary = financialSummary || {
     totalRevenue: 0,
@@ -128,8 +118,8 @@ export default function FinancialReports() {
           الإيرادات
         </h4>
         <div className="space-y-2">
-          {accounts?.filter((account: any) => account.type === 'revenue').map((account: any) => {
-            const balance = accountBalances?.find((b: any) => b.accountId === account.id);
+          {accountsData.filter((account: any) => account.type === 'revenue').map((account: any) => {
+            const balance = balancesData.find((b: any) => b.accountId === account.id);
             return (
               <div key={account.id} className="flex justify-between items-center py-2 border-b border-gray-100">
                 <span className="text-gray-700">{account.nameArabic || account.name}</span>
@@ -155,8 +145,8 @@ export default function FinancialReports() {
           المصروفات
         </h4>
         <div className="space-y-2">
-          {accounts?.filter((account: any) => account.type === 'expenses').map((account: any) => {
-            const balance = accountBalances?.find((b: any) => b.accountId === account.id);
+          {accountsData.filter((account: any) => account.type === 'expenses').map((account: any) => {
+            const balance = balancesData.find((b: any) => b.accountId === account.id);
             return (
               <div key={account.id} className="flex justify-between items-center py-2 border-b border-gray-100">
                 <span className="text-gray-700">{account.nameArabic || account.name}</span>
