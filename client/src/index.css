@@ -1,0 +1,307 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+  
+  /* Custom Arabic Accounting Colors */
+  --success: hsl(142, 76%, 36%);
+  --success-foreground: hsl(355.7, 100%, 97.3%);
+  --warning: hsl(32, 95%, 44%);
+  --warning-foreground: hsl(210, 40%, 98%);
+  --info: hsl(217, 91%, 60%);
+  --info-foreground: hsl(210, 40%, 98%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-arabic antialiased bg-background text-foreground;
+    direction: rtl;
+  }
+
+  html {
+    direction: rtl;
+  }
+}
+
+@layer utilities {
+  .font-arabic {
+    font-family: 'Cairo', 'Segoe UI', sans-serif;
+  }
+
+  .arabic-number {
+    direction: ltr;
+    unicode-bidi: embed;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chart-container {
+    background: linear-gradient(135deg, hsl(207, 90%, 54%) 0%, hsl(259, 100%, 65%) 100%);
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .sidebar-link:hover {
+    background: hsl(207, 90%, 54%, 0.1);
+    border-right: 3px solid hsl(207, 90%, 54%);
+  }
+
+  .sidebar-link.active {
+    background: hsl(207, 90%, 54%, 0.15);
+    border-right: 3px solid hsl(207, 90%, 54%);
+    color: hsl(207, 90%, 54%);
+  }
+
+  /* RTL Overrides */
+  .space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
+  }
+
+  /* Custom scrollbar for RTL */
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: hsl(60, 4.8%, 95.9%);
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: hsl(25, 5.3%, 44.7%);
+    border-radius: 3px;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: hsl(20, 14.3%, 4.1%);
+  }
+
+  /* Table improvements for Arabic */
+  .accounting-table th {
+    text-align: right;
+    font-weight: 600;
+    background: hsl(60, 4.8%, 95.9%);
+  }
+
+  .accounting-table td {
+    text-align: right;
+    border-bottom: 1px solid hsl(20, 5.9%, 90%);
+  }
+
+  /* Button improvements */
+  .btn-primary {
+    background: hsl(207, 90%, 54%);
+    color: hsl(211, 100%, 99%);
+  }
+
+  .btn-primary:hover {
+    background: hsl(207, 90%, 48%);
+  }
+
+  .btn-success {
+    background: hsl(142, 76%, 36%);
+    color: hsl(355.7, 100%, 97.3%);
+  }
+
+  .btn-success:hover {
+    background: hsl(142, 76%, 30%);
+  }
+
+  .btn-warning {
+    background: hsl(32, 95%, 44%);
+    color: hsl(210, 40%, 98%);
+  }
+
+  .btn-warning:hover {
+    background: hsl(32, 95%, 38%);
+  }
+
+  .btn-danger {
+    background: hsl(0, 84.2%, 60.2%);
+    color: hsl(60, 9.1%, 97.8%);
+  }
+
+  .btn-danger:hover {
+    background: hsl(0, 84.2%, 54%);
+  }
+
+  /* Form improvements for Arabic */
+  .form-input {
+    text-align: right;
+    direction: rtl;
+  }
+
+  .form-input::placeholder {
+    text-align: right;
+    direction: rtl;
+  }
+
+  /* Status badges */
+  .status-active {
+    background: hsl(142, 76%, 36%, 0.1);
+    color: hsl(142, 76%, 36%);
+  }
+
+  .status-inactive {
+    background: hsl(0, 84.2%, 60.2%, 0.1);
+    color: hsl(0, 84.2%, 60.2%);
+  }
+
+  .status-pending {
+    background: hsl(32, 95%, 44%, 0.1);
+    color: hsl(32, 95%, 44%);
+  }
+
+  /* Financial amount styling */
+  .amount-positive {
+    color: hsl(142, 76%, 36%);
+    font-weight: 600;
+  }
+
+  .amount-negative {
+    color: hsl(0, 84.2%, 60.2%);
+    font-weight: 600;
+  }
+
+  .amount-neutral {
+    color: hsl(25, 5.3%, 44.7%);
+    font-weight: 500;
+  }
+
+  /* Loading animations */
+  .loading-skeleton {
+    background: linear-gradient(90deg, hsl(60, 4.8%, 95.9%) 25%, hsl(20, 5.9%, 90%) 50%, hsl(60, 4.8%, 95.9%) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+  }
+
+  @keyframes loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  /* Chart container styling */
+  .financial-chart {
+    background: linear-gradient(135deg, hsl(207, 90%, 54%) 0%, hsl(259, 100%, 65%) 100%);
+    border-radius: 0.5rem;
+    color: white;
+  }
+
+  /* Navigation improvements */
+  .nav-item {
+    transition: all 0.2s ease-in-out;
+  }
+
+  .nav-item:hover {
+    transform: translateX(-2px);
+  }
+
+  /* Card shadows for depth */
+  .card-elevated {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  .card-elevated:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    padding: 1rem;
+  }
+
+  .accounting-table {
+    font-size: 0.875rem;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Print styles for reports */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+  }
+}
