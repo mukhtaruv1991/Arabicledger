@@ -10,13 +10,17 @@ import {
   integer,
   boolean,
   serial,
-  pgEnum, // --- سنحتاج هذا لتعريف الأدوار ---
+  pgEnum, // سنحتاج هذا
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-// Session storage table (required for session management)
+// ==================================================================
+// == كل الكود الموجود هنا يبقى كما هو تمامًا بدون أي تغيير ==
+// ==================================================================
+
+// Session storage table (required for Replit Auth)
 export const sessions = pgTable(
   "sessions",
   {
@@ -27,21 +31,14 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// --- تعريف الأدوار (Roles) ---
-export const roleEnum = pgEnum('role', ['user', 'admin', 'superadmin']);
-
-// --- جدول المستخدمين المعدل بالكامل ---
+// User storage table (required for Replit Auth)
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  fullName: varchar("full_name", { length: 255 }).notNull(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
-  username: varchar("username", { length: 50 }).notNull().unique(),
-  phone: varchar("phone", { length: 20 }).unique(),
-  hashedPassword: text("hashed_password").notNull(),
-  role: roleEnum("role").default("user").notNull(),
-  organizationName: varchar("organization_name", { length: 255 }),
-  adminEmail: varchar("admin_email", { length: 255 }), // يستخدم فقط إذا كان الدور superadmin
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  role: varchar("role").default("user"), // admin, user, accountant
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -134,6 +131,32 @@ export const telegramSettings = pgTable("telegram_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+
+// ==================================================================
+// == هنا تبدأ الإضافات الجديدة والآمنة ==
+// ==================================================================
+
+export const authRoleEnum = pgEnum('auth_role', ['user', 'admin', 'superadmin']);
+
+export const authUsers = pgTable("auth_users", {
+  id: serial("id").primaryKey(),
+  fullName: varchar("full_name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  username: varchar("username", { length: 50 }).notNull().unique(),
+  phone: varchar("phone", { length: 20 }).unique(),
+  hashedPassword: text("hashed_password").notNull(),
+  role: authRoleEnum("role").default("user").notNull(),
+  organizationName: varchar("organization_name", { length: 255 }),
+  adminEmail: varchar("admin_email", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+
+// ==================================================================
+// == كل الكود الموجود هنا يبقى كما هو تمامًا بدون أي تغيير ==
+// ==================================================================
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   companies: many(companies),
@@ -206,16 +229,6 @@ export const telegramSettingsRelations = relations(telegramSettings, ({ one }) =
 }));
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users, {
-  email: z.string().email(),
-  // يمكنك إضافة المزيد من التحقق هنا إذا أردت
-}).omit({
-  id: true,
-  hashedPassword: true, // لا نريد أن نمرر كلمة المرور المشفرة مباشرة
-  createdAt: true,
-  updatedAt: true,
-});
-
 export const insertCompanySchema = createInsertSchema(companies).omit({
   id: true,
   createdAt: true,
@@ -265,3 +278,14 @@ export type InsertTelegramSettings = z.infer<typeof insertTelegramSettingsSchema
 export type TelegramSettings = typeof telegramSettings.$inferSelect;
 
 export type AccountBalance = typeof accountBalances.$inferSelect;
+
+// --- أنواع ومخططات الإدخال الجديدة والآمنة ---
+export const insertAuthUserSchema = createInsertSchema(authUsers, {
+  email: z.string().email(),
+}).omit({
+  id: true,
+  hashedPassword: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type AuthUser = typeof authUsers.$inferSelect;
