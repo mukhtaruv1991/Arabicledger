@@ -3,9 +3,9 @@ import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
 import type { Express, RequestHandler } from "express";
 import { storage } from "./storage";
-import session from 'express-session';
-import connectPgSimple from 'connect-pg-simple';
-import pg from 'pg';
+import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
+import pg from "pg";
 
 const PgStore = connectPgSimple(session);
 
@@ -25,16 +25,16 @@ function getSession() {
   return session({
     store: new PgStore({
       pool: pool,
-      tableName: 'user_sessions'
+      tableName: "user_sessions"
     }),
     secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
     cookie: {
       maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      sameSite: 'lax'
+      sameSite: "lax"
     }
   });
 }
@@ -47,18 +47,18 @@ export async function setupLocalAuth(app: Express) {
 
   passport.use(new LocalStrategy(
     {
-      usernameField: 'login',
-      passwordField: 'password'
+      usernameField: "login",
+      passwordField: "password"
     },
     async (login, password, done) => {
       try {
         const user = await storage.findAuthUserByLogin(login);
         if (!user) {
-          return done(null, false, { message: 'Incorrect username or password.' });
+          return done(null, false, { message: "Incorrect username or password." });
         }
         const isMatch = await bcrypt.compare(password, user.hashedPassword);
         if (!isMatch) {
-          return done(null, false, { message: 'Incorrect username or password.' });
+          return done(null, false, { message: "Incorrect username or password." });
         }
         return done(null, user);
       } catch (err) {
@@ -80,12 +80,12 @@ export async function setupLocalAuth(app: Express) {
     }
   });
 
-  app.post('/api/auth/signup', async (req, res, next) => {
+  app.post("/api/auth/signup", async (req, res, next) => {
     try {
       const { fullName, email, username, phone, password, role, organizationName, adminEmail } = req.body;
       const existingUser = await storage.findAuthUserByLogin(email) || await storage.findAuthUserByLogin(username);
       if (existingUser) {
-        return res.status(400).json({ message: 'User already exists.' });
+        return res.status(400).json({ message: "User already exists." });
       }
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
@@ -102,7 +102,7 @@ export async function setupLocalAuth(app: Express) {
     }
   });
 
-  app.post('/api/auth/login', passport.authenticate('local'), (req, res) => {
+  app.post("/api/auth/login", passport.authenticate("local"), (req, res) => {
     const { hashedPassword, ...userWithoutPassword } = req.user as any;
     res.json(userWithoutPassword);
   });
@@ -110,7 +110,7 @@ export async function setupLocalAuth(app: Express) {
   app.get("/api/logout", (req, res, next) => {
     req.logout((err) => {
       if (err) { return next(err); }
-      res.status(200).json({ message: 'Logged out successfully' });
+      res.status(200).json({ message: "Logged out successfully" });
     });
   });
 }
