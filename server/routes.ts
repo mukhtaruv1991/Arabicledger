@@ -1,8 +1,8 @@
-// المحتوى الكامل لملف server/routes.ts
+// المحتوى الكامل والمعدل لملف server/routes.ts
+
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-// --- التعديل 1: استيراد نظام المصادقة المحلي الجديد ---
 import { setupLocalAuth, isAuthenticated } from "./localAuth";
 import { setupTelegramBot } from "./telegramBot";
 import {
@@ -15,30 +15,28 @@ import {
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // --- التعديل 2: تفعيل نظام المصادقة المحلي ---
+  // تفعيل نظام المصادقة المحلي
   await setupLocalAuth(app);
 
-  // Setup Telegram bot
+  // إعداد بوت التليجرام
   setupTelegramBot(app);
 
-  // --- التعديل 3: مسار جديد للحصول على بيانات المستخدم المسجل دخوله ---
-  // هذا المسار مهم جدًا للواجهة الأمامية لتعرف من هو المستخدم الحالي
-  app.get('/api/auth/me', isAuthenticated, async (req: any, res) => {
-    // req.user يأتي من passport بعد تسجيل الدخول بنجاح
-    // لا نرسل كلمة المرور المشفرة أبدًا إلى الواجهة الأمامية
+  // --- المسار الرئيسي للتحقق من حالة المستخدم ---
+  // تم تعديل هذا المسار من /api/auth/me إلى /api/auth/user
+  // هذا هو المسار الذي تستدعيه الواجهة الأمامية عادةً لتحديد ما إذا كان يجب عرض صفحة تسجيل الدخول أم لوحة التحكم.
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    // إذا وصل الطلب إلى هنا، فهذا يعني أن المستخدم مسجل دخوله بنجاح (بفضل isAuthenticated)
+    // req.user يحتوي على بيانات المستخدم التي تم استرجاعها من الجلسة
     const { hashedPassword, ...userWithoutPassword } = req.user;
     res.json(userWithoutPassword);
   });
 
 
-  // --- كل المسارات التالية محمية الآن بواسطة isAuthenticated ---
-  // --- وهي تستخدم الآن req.user.id من نظامنا المحلي ---
+  // --- جميع المسارات التالية محمية وتتطلب تسجيل الدخول ---
 
   // Company routes
   app.get('/api/companies', isAuthenticated, async (req: any, res) => {
     try {
-      // ملاحظة: الحقل createdBy في جدول الشركات هو من نوع varchar
-      // ومعرف المستخدم في جدول auth_users هو رقم. يجب تحويله إلى نص.
       const userId = req.user.id.toString();
       const companies = await storage.getCompanies(userId);
       res.json(companies);
