@@ -1,8 +1,8 @@
-// المحتوى الكامل لملف client/src/pages/chart-of-accounts.tsx (محدّث)
+// المحتوى الكامل لملف client/src/pages/chart-of-accounts.tsx (محدّث وكامل)
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError, redirectToLogin } from "@/lib/authUtils"; // <-- تعديل هنا
+import { isUnauthorizedError, redirectToLogin } from "@/lib/authUtils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
@@ -33,7 +33,7 @@ export default function ChartOfAccounts() {
         description: "تم تسجيل خروجك. سيتم توجيهك لصفحة الدخول.",
         variant: "destructive",
       });
-      redirectToLogin(); // <-- تعديل هنا
+      redirectToLogin();
       return;
     }
   }, [error, toast]);
@@ -90,14 +90,127 @@ export default function ChartOfAccounts() {
   };
 
   const accountsData = (accounts as any[]) || [];
-  // بقية الكود يبقى كما هو...
+
+  const filteredAccounts = accountsData.filter((account: any) => {
+    const matchesSearch =
+      account.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      account.nameArabic.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterType === "all" || account.type === filterType;
+    return matchesSearch && matchesFilter;
+  });
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'assets': return 'أصول';
+      case 'liabilities': return 'خصوم';
+      case 'equity': return 'حقوق الملكية';
+      case 'revenue': return 'إيرادات';
+      case 'expenses': return 'مصروفات';
+      default: return type;
+    }
+  };
+
   return (
     <div className="min-h-screen flex bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <TopBar title="دليل الحسابات" subtitle="إدارة الحسابات المالية" />
         <main className="flex-1 p-6 overflow-y-auto">
-          {/* بقية الواجهة تبقى كما هي */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-4 space-x-reverse">
+                  <div className="relative">
+                    <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="البحث في الحسابات..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pr-10 w-64"
+                    />
+                  </div>
+                  <Select value={filterType} onValueChange={setFilterType}>
+                    <SelectTrigger className="w-48"><Filter className="w-4 h-4 ml-2" /><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">جميع الأنواع</SelectItem>
+                      <SelectItem value="assets">أصول</SelectItem>
+                      <SelectItem value="liabilities">خصوم</SelectItem>
+                      <SelectItem value="equity">حقوق الملكية</SelectItem>
+                      <SelectItem value="revenue">إيرادات</SelectItem>
+                      <SelectItem value="expenses">مصروفات</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-blue-600 hover:bg-blue-700"><Plus className="w-4 h-4 ml-2" />إضافة حساب جديد</Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader><DialogTitle>{editingAccount ? "تعديل الحساب" : "إضافة حساب جديد"}</DialogTitle></DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <div><Label htmlFor="code">رمز الحساب</Label><Input id="code" name="code" defaultValue={editingAccount?.code || ""} required /></div>
+                      <div><Label htmlFor="name">اسم الحساب (بالإنجليزية)</Label><Input id="name" name="name" defaultValue={editingAccount?.name || ""} required /></div>
+                      <div><Label htmlFor="nameArabic">اسم الحساب (بالعربية)</Label><Input id="nameArabic" name="nameArabic" defaultValue={editingAccount?.nameArabic || ""} required /></div>
+                      <div>
+                        <Label htmlFor="type">نوع الحساب</Label>
+                        <Select name="type" defaultValue={editingAccount?.type || ""} required>
+                          <SelectTrigger><SelectValue placeholder="اختر نوع الحساب" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="assets">أصول</SelectItem>
+                            <SelectItem value="liabilities">خصوم</SelectItem>
+                            <SelectItem value="equity">حقوق الملكية</SelectItem>
+                            <SelectItem value="revenue">إيرادات</SelectItem>
+                            <SelectItem value="expenses">مصروفات</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div><Label htmlFor="subType">النوع الفرعي</Label><Input id="subType" name="subType" defaultValue={editingAccount?.subType || ""} placeholder="مثال: أصول متداولة" /></div>
+                      <div className="flex space-x-2 space-x-reverse pt-4">
+                        <Button type="submit" disabled={createAccountMutation.isPending || updateAccountMutation.isPending}>{editingAccount ? "تحديث" : "إضافة"}</Button>
+                        <Button type="button" variant="outline" onClick={() => { setIsDialogOpen(false); setEditingAccount(null); }}>إلغاء</Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-right py-3 px-4 font-medium text-gray-600">رمز الحساب</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-600">اسم الحساب</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-600">النوع</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-600">الحالة</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-600">العمليات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {isLoading ? (
+                      [...Array(5)].map((_, i) => <tr key={i} className="border-b border-gray-100"><td className="py-3 px-4"><div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div></td><td className="py-3 px-4"><div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div></td><td className="py-3 px-4"><div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div></td><td className="py-3 px-4"><div className="h-6 bg-gray-200 rounded-full w-16 animate-pulse"></div></td><td className="py-3 px-4"><div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div></td></tr>)
+                    ) : filteredAccounts && filteredAccounts.length > 0 ? (
+                      filteredAccounts.map((account: any) => (
+                        <tr key={account.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-3 px-4 arabic-number font-mono">{account.code}</td>
+                          <td className="py-3 px-4 font-medium">{account.nameArabic || account.name}</td>
+                          <td className="py-3 px-4 text-gray-600">{getTypeLabel(account.type)}</td>
+                          <td className="py-3 px-4"><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${account.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{account.isActive ? 'نشط' : 'غير نشط'}</span></td>
+                          <td className="py-3 px-4">
+                            <div className="flex space-x-2 space-x-reverse">
+                              <Button variant="ghost" size="sm" onClick={() => { setEditingAccount(account); setIsDialogOpen(true); }} className="text-blue-600 hover:text-blue-700"><Edit className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="sm" onClick={() => { if (confirm("هل أنت متأكد من حذف هذا الحساب؟")) { deleteAccountMutation.mutate(account.id); } }} className="text-red-600 hover:text-red-700"><Trash2 className="w-4 h-4" /></Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr><td colSpan={5} className="text-center py-8 text-gray-500"><div className="flex flex-col items-center"><Plus className="w-12 h-12 text-gray-300 mb-4" /><p>لا توجد حسابات</p><p className="text-sm mt-1">قم بإضافة حساب جديد للبدء</p></div></td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
         </main>
       </div>
     </div>
