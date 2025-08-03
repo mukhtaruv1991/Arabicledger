@@ -6,6 +6,7 @@ import {
   journalEntryDetails,
   accountBalances,
   telegramSettings,
+  authUsers, // --- إضافة جديدة ---
   type User,
   type UpsertUser,
   type Company,
@@ -19,11 +20,17 @@ import {
   type AccountBalance,
   type TelegramSettings,
   type InsertTelegramSettings,
+  type AuthUser, // --- إضافة جديدة ---
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, sum, sql } from "drizzle-orm";
+import { eq, and, desc, asc, sum, sql, or } from "drizzle-orm"; // --- إضافة or ---
 
 export interface IStorage {
+  // --- دوال جديدة للمصادقة المحلية ---
+  findAuthUserByLogin(login: string): Promise<AuthUser | undefined>;
+  findAuthUserById(id: number): Promise<AuthUser | undefined>;
+  createAuthUser(userData: Omit<AuthUser, 'id' | 'createdAt' | 'updatedAt'>): Promise<AuthUser>;
+
   // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
@@ -68,6 +75,30 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // --- دوال المصادقة المحلية الجديدة ---
+  async findAuthUserByLogin(login: string): Promise<AuthUser | undefined> {
+    const [user] = await db.select().from(authUsers).where(
+      or(
+        eq(authUsers.email, login),
+        eq(authUsers.username, login),
+        eq(authUsers.phone, login)
+      )
+    );
+    return user;
+  }
+
+  async findAuthUserById(id: number): Promise<AuthUser | undefined> {
+    const [user] = await db.select().from(authUsers).where(eq(authUsers.id, id));
+    return user;
+  }
+
+  async createAuthUser(userData: Omit<AuthUser, 'id' | 'createdAt' | 'updatedAt'>): Promise<AuthUser> {
+    const [newUser] = await db.insert(authUsers).values(userData).returning();
+    return newUser;
+  }
+
+  // --- بقية الدوال تبقى كما هي ---
+
   // User operations (required for Replit Auth)
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
@@ -254,7 +285,6 @@ export class DatabaseStorage implements IStorage {
 
     await db.insert(journalEntryDetails).values(entryDetails);
 
-    // Update account balances
     for (const detail of details) {
       await this.updateAccountBalance(detail.accountId, entry.companyId);
     }
@@ -270,10 +300,8 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     if (details) {
-      // Delete existing details
       await db.delete(journalEntryDetails).where(eq(journalEntryDetails.journalEntryId, id));
 
-      // Insert new details
       const entryDetails = details.map(detail => ({
         ...detail,
         journalEntryId: id,
@@ -281,7 +309,6 @@ export class DatabaseStorage implements IStorage {
 
       await db.insert(journalEntryDetails).values(entryDetails);
 
-      // Update account balances
       for (const detail of details) {
         await this.updateAccountBalance(detail.accountId, updatedEntry.companyId);
       }
@@ -291,17 +318,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteJournalEntry(id: number): Promise<void> {
-    // Get the entry to know which accounts to update
     const entry = await this.getJournalEntry(id);
     if (!entry) return;
 
-    // Delete details first
     await db.delete(journalEntryDetails).where(eq(journalEntryDetails.journalEntryId, id));
-
-    // Delete the entry
     await db.delete(journalEntries).where(eq(journalEntries.id, id));
 
-    // Update account balances
     for (const detail of entry.details) {
       await this.updateAccountBalance(detail.accountId, entry.companyId);
     }
@@ -316,7 +338,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateAccountBalance(accountId: number, companyId: number): Promise<void> {
-    // Calculate total debits and credits for this account
     const result = await db
       .select({
         totalDebit: sum(journalEntryDetails.debit),
@@ -335,7 +356,6 @@ export class DatabaseStorage implements IStorage {
     const totalCredit = Number(result[0]?.totalCredit || 0);
     const netBalance = totalDebit - totalCredit;
 
-    // Upsert account balance
     await db
       .insert(accountBalances)
       .values({
@@ -364,7 +384,6 @@ export class DatabaseStorage implements IStorage {
     netProfit: number;
     totalAccounts: number;
   }> {
-    // Get revenue accounts (type = 'revenue')
     const revenueResult = await db
       .select({
         total: sum(accountBalances.creditBalance),
@@ -378,7 +397,6 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
-    // Get expense accounts (type = 'expenses')
     const expenseResult = await db
       .select({
         total: sum(accountBalances.debitBalance),
@@ -392,7 +410,6 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
-    // Get total number of accounts
     const accountCountResult = await db
       .select({
         count: sql<number>`count(*)`,
