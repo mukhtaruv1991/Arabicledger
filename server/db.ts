@@ -11,5 +11,12 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// **هذا هو التعديل المهم**
+// نحن نجبر الاتصال على استخدام SSL ولكن مع تعطيل التحقق من الشهادة
+export const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  }
+});
 export const db = drizzle({ client: pool, schema });
