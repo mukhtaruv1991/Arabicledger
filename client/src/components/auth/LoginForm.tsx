@@ -1,4 +1,5 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -12,11 +13,17 @@ interface LoginFormProps {
 
 export default function LoginForm({ onSwitchToSignup }: LoginFormProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
+
   const loginMutation = useMutation({
     mutationFn: (data: any) => apiRequest("POST", "/api/auth/login", data),
     onSuccess: () => {
       toast({ title: "تم بنجاح", description: "تم تسجيل دخولك بنجاح." });
-      window.location.href = "/"; // إعادة تحميل الصفحة للانتقال إلى لوحة التحكم
+      // الخطوة 1: تحديث بيانات المستخدم في الذاكرة المؤقتة
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      // الخطوة 2: التوجيه الداخلي بدون إعادة تحميل الصفحة
+      setLocation("/");
     },
     onError: (error: any) => {
       toast({ title: "خطأ في الدخول", description: error.message || "البيانات المدخلة غير صحيحة.", variant: "destructive" });

@@ -1,4 +1,5 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -12,11 +13,16 @@ interface SignupFormProps {
 
 export default function SignupForm({ onSwitchToLogin }: SignupFormProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
+
   const signupMutation = useMutation({
     mutationFn: (data: any) => apiRequest("POST", "/api/auth/signup", data),
     onSuccess: () => {
       toast({ title: "تم بنجاح", description: "تم إنشاء حسابك. جاري تسجيل الدخول..." });
-      window.location.href = "/";
+      // نفس المنطق: تحديث ثم توجيه داخلي
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setLocation("/");
     },
     onError: (error: any) => {
       toast({ title: "خطأ في التسجيل", description: error.message || "البيانات المدخلة غير صالحة أو مستخدمة.", variant: "destructive" });
