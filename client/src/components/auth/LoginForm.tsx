@@ -20,9 +20,7 @@ export default function LoginForm({ onSwitchToSignup }: LoginFormProps) {
     mutationFn: (data: any) => apiRequest("POST", "/api/auth/login", data),
     onSuccess: () => {
       toast({ title: "تم بنجاح", description: "تم تسجيل دخولك بنجاح." });
-      // الخطوة 1: تحديث بيانات المستخدم في الذاكرة المؤقتة
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      // الخطوة 2: التوجيه الداخلي بدون إعادة تحميل الصفحة
       setLocation("/");
     },
     onError: (error: any) => {
@@ -38,31 +36,6 @@ export default function LoginForm({ onSwitchToSignup }: LoginFormProps) {
   };
 
   return (
-    <div className="flex justify-center items-center">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">تسجيل الدخول</CardTitle>
-          <CardDescription>أدخل بياناتك للوصول إلى حسابك</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="login">البريد الإلكتروني / اسم المستخدم</Label>
-              <Input id="login" name="login" required />
-            </div>
-            <div>
-              <Label htmlFor="password">كلمة المرور</Label>
-              <Input id="password" name="password" type="password" required />
-            </div>
-            <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
-              {loginMutation.isPending ? "جاري الدخول..." : "دخول"}
-            </Button>
-          </form>
-          <div className="mt-4 text-center text-sm">
-            ليس لديك حساب؟ <Button variant="link" className="p-0 h-auto" onClick={onSwitchToSignup}>أنشئ حسابًا جديدًا</Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <div className="flex justify-center items-center"><Card className="w-full max-w-md"><CardHeader className="text-center"><CardTitle className="text-2xl">تسجيل الدخول</CardTitle><CardDescription>أدخل بياناتك للوصول إلى حسابك</CardDescription></CardHeader><CardContent><form onSubmit={handleSubmit} className="space-y-4"><div><Label htmlFor="login">البريد الإلكتروني / اسم المستخدم</Label><Input id="login" name="login" required /></div><div><Label htmlFor="password">كلمة المرور</Label><Input id="password" name="password" type="password" required /></div><Button type="submit" className="w-full" disabled={loginMutation.isPending}>{loginMutation.isPending ? "جاري الدخول..." : "دخول"}</Button></form><div className="mt-4 text-center text-sm">ليس لديك حساب؟ <Button variant="link" className="p-0 h-auto" onClick={onSwitchToSignup}>أنشئ حسابًا جديدًا</Button></div></CardContent></Card></div>
   );
 }

@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { queryClient } from "./lib/queryClient";
 
-// صفحات التطبيق
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
@@ -17,18 +16,14 @@ import Users from "@/pages/users";
 import TelegramBot from "@/pages/telegram-bot";
 import TelegramSettings from "@/pages/telegram-settings";
 
-// مكون شاشة التحميل
 function LoadingScreen() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <p className="text-lg font-semibold text-gray-700">جاري التحميل...</p>
-      </div>
+      <p className="text-lg font-semibold text-gray-700">جاري التحميل...</p>
     </div>
   );
 }
 
-// مكون المسارات المحمية
 function PrivateRoutes() {
   return (
     <Switch>
@@ -40,37 +35,28 @@ function PrivateRoutes() {
       <Route path="/users" component={Users} />
       <Route path="/telegram-bot" component={TelegramBot} />
       <Route path="/telegram-settings" component={TelegramSettings} />
-      <Route>
-        <Redirect to="/" />
-      </Route>
+      <Route><Redirect to="/" /></Route>
     </Switch>
   );
 }
 
-// مكون المسارات العامة
 function PublicRoutes() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
-      <Route>
-        <Redirect to="/" />
-      </Route>
+      <Route><Redirect to="/" /></Route>
     </Switch>
   );
 }
 
-// **هذا هو المكون الجديد الذي يقرر ماذا سيعرض**
 function AppRouter() {
   const { isAuthenticated, isLoading } = useAuth();
-
   if (isLoading) {
     return <LoadingScreen />;
   }
-
   return isAuthenticated ? <PrivateRoutes /> : <PublicRoutes />;
 }
 
-// **هذا هو المكون الرئيسي الذي يوفر كل شيء**
 function App() {
   return (
     <QueryClientProvider client={queryClient}>

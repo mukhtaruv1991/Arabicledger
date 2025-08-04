@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Calculator, TrendingUp, Users, Shield } from "lucide-react";
+import { Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LoginForm from "@/components/auth/LoginForm";
 import SignupForm from "@/components/auth/SignupForm";
 
 export default function Landing() {
-  const [view, setView] = useState<'landing' | 'login' | 'signup'>('login');
+  const [view, setView] = useState<'login' | 'signup'>('login');
 
   const renderContent = () => {
     if (view === 'login') {
@@ -14,7 +14,7 @@ export default function Landing() {
     if (view === 'signup') {
       return <SignupForm onSwitchToLogin={() => setView('login')} />;
     }
-    return null; // لن نعرض محتوى الهبوط المبدئي، بل نموذج الدخول مباشرة
+    return null;
   };
 
   return (
@@ -26,15 +26,12 @@ export default function Landing() {
               <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Calculator className="w-6 h-6 text-white" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">نظام المحاسبة الذكي</h1>
-              </div>
+              <div><h1 className="text-xl font-bold text-gray-900">نظام المحاسبة الذكي</h1></div>
             </div>
           </div>
         </div>
       </header>
-
-      <main className="flex-1 flex items-center justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <main className="flex-1 flex items-center justify-center max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {renderContent()}
       </main>
     </div>
