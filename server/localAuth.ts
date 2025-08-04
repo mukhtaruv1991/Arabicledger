@@ -3,19 +3,31 @@ import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
 import type { Express, RequestHandler } from "express";
 import { storage } from "./storage";
-import session from "express-session";
-import connectPgSimple from "connect-pg-simple";
-import pg from "pg";
+import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
+import pg from 'pg';
 
+// --- هذا هو الجزء الذي سنقوم بتصحيحه ---
+// دالة لإنشاء اتصال آمن بقاعدة البيانات
+function createDbPool() {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL environment variable is not set!");
+  }
+
+  // في بيئة الإنتاج على Railway، نحتاج إلى تفعيل SSL
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  return new pg.Pool({
+    connectionString: databaseUrl,
+    ssl: isProduction ? { rejectUnauthorized: false } : false,
+  });
+}
+
+const pool = createDbPool();
 const PgStore = connectPgSimple(session);
 
-const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
-
+// دالة لإعداد الجلسة
 function getSession() {
   const sessionSecret = process.env.SESSION_SECRET;
   if (!sessionSecret) {
@@ -25,19 +37,22 @@ function getSession() {
   return session({
     store: new PgStore({
       pool: pool,
-      tableName: "user_sessions"
+      tableName: 'user_sessions', // تأكد من أن هذا هو اسم الجدول الصحيح
+      createTableIfMissing: true, // سيقوم بإنشاء الجدول إذا لم يكن موجودًا
     }),
     secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-      secure: process.env.NODE_ENV === "production",
+      maxAge: 1000 * 60 * 60 * 24 * 30, // 30 يومًا
+      secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
-      sameSite: "lax"
+      sameSite: 'lax',
     }
   });
 }
+
+// --- بقية الملف يبقى كما هو ---
 
 export async function setupLocalAuth(app: Express) {
   app.set("trust proxy", 1);
@@ -47,18 +62,18 @@ export async function setupLocalAuth(app: Express) {
 
   passport.use(new LocalStrategy(
     {
-      usernameField: "login",
-      passwordField: "password"
+      usernameField: 'login',
+      passwordField: 'password'
     },
     async (login, password, done) => {
       try {
         const user = await storage.findAuthUserByLogin(login);
         if (!user) {
-          return done(null, false, { message: "Incorrect username or password." });
+          return done(null, false, { message: 'Incorrect username or password.' });
         }
         const isMatch = await bcrypt.compare(password, user.hashedPassword);
         if (!isMatch) {
-          return done(null, false, { message: "Incorrect username or password." });
+          return done(null, false, { message: 'Incorrect username or password.' });
         }
         return done(null, user);
       } catch (err) {
@@ -80,17 +95,17 @@ export async function setupLocalAuth(app: Express) {
     }
   });
 
-  app.post("/api/auth/signup", async (req, res, next) => {
+  app.post('/api/auth/signup', async (req, res, next) => {
     try {
-      const { fullName, email, username, phone, password, role, organizationName, adminEmail } = req.body;
+      const { fullName, email, username, phone, password } = req.body;
       const existingUser = await storage.findAuthUserByLogin(email) || await storage.findAuthUserByLogin(username);
       if (existingUser) {
-        return res.status(400).json({ message: "User already exists." });
+        return res.status(400).json({ message: 'User already exists.' });
       }
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
       const newUser = await storage.createAuthUser({
-        fullName, email, username, phone, hashedPassword, role, organizationName, adminEmail
+        fullName, email, username, phone, hashedPassword, role: 'user'
       });
       req.login(newUser, (err) => {
         if (err) { return next(err); }
@@ -102,7 +117,7 @@ export async function setupLocalAuth(app: Express) {
     }
   });
 
-  app.post("/api/auth/login", passport.authenticate("local"), (req, res) => {
+  app.post('/api/auth/login', passport.authenticate('local'), (req, res) => {
     const { hashedPassword, ...userWithoutPassword } = req.user as any;
     res.json(userWithoutPassword);
   });
@@ -110,7 +125,10 @@ export async function setupLocalAuth(app: Express) {
   app.get("/api/logout", (req, res, next) => {
     req.logout((err) => {
       if (err) { return next(err); }
-      res.status(200).json({ message: "Logged out successfully" });
+      req.session.destroy((err) => {
+        res.clearCookie('connect.sid');
+        res.status(200).json({ message: 'Logged out successfully' });
+      });
     });
   });
 }
