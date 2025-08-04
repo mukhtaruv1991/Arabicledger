@@ -5,22 +5,8 @@ import type { Express, RequestHandler } from "express";
 import { storage } from "./storage";
 import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
-import pg from 'pg';
+import { pool } from './db'; // <-- استيراد الـ pool المعدل
 
-function createDbPool() {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    throw new Error("DATABASE_URL environment variable is not set!");
-  }
-
-  // الاتصال الداخلي في Railway لا يتطلب SSL
-  return new pg.Pool({
-    connectionString: databaseUrl,
-    ssl: false, // <-- تعطيل SSL
-  });
-}
-
-const pool = createDbPool();
 const PgStore = connectPgSimple(session);
 
 function getSession() {
@@ -31,7 +17,7 @@ function getSession() {
 
   return session({
     store: new PgStore({
-      pool: pool,
+      pool: pool, // <-- استخدام الـ pool المعدل
       tableName: 'user_sessions',
       createTableIfMissing: true,
     }),
