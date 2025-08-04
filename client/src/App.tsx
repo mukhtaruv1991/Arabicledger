@@ -23,7 +23,6 @@ function LoadingScreen() {
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
       <div className="text-center">
         <p className="text-lg font-semibold text-gray-700">جاري التحميل...</p>
-        <p className="text-sm text-gray-500">يتم التحقق من حالة تسجيل الدخول</p>
       </div>
     </div>
   );
@@ -41,7 +40,6 @@ function PrivateRoutes() {
       <Route path="/users" component={Users} />
       <Route path="/telegram-bot" component={TelegramBot} />
       <Route path="/telegram-settings" component={TelegramSettings} />
-      {/* أي مسار آخر غير معروف داخل التطبيق سيذهب إلى لوحة التحكم */}
       <Route>
         <Redirect to="/" />
       </Route>
@@ -54,7 +52,6 @@ function PublicRoutes() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
-      {/* أي مسار آخر غير معروف سيذهب إلى صفحة الهبوط */}
       <Route>
         <Redirect to="/" />
       </Route>
@@ -62,22 +59,25 @@ function PublicRoutes() {
   );
 }
 
-function App() {
+// **هذا هو المكون الجديد الذي يقرر ماذا سيعرض**
+function AppRouter() {
   const { isAuthenticated, isLoading } = useAuth();
 
-  // **المنطق الجديد والمحسّن**
-  // 1. إذا كنا لا نزال ننتظر الرد من الخادم، نعرض شاشة تحميل.
   if (isLoading) {
     return <LoadingScreen />;
   }
 
-  // 2. بعد وصول الرد، نقرر أي مجموعة من المسارات سنعرضها.
+  return isAuthenticated ? <PrivateRoutes /> : <PublicRoutes />;
+}
+
+// **هذا هو المكون الرئيسي الذي يوفر كل شيء**
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <div dir="rtl" className="font-arabic">
           <Toaster />
-          {isAuthenticated ? <PrivateRoutes /> : <PublicRoutes />}
+          <AppRouter />
         </div>
       </TooltipProvider>
     </QueryClientProvider>
