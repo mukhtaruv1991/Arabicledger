@@ -13,11 +13,10 @@ function createDbPool() {
     throw new Error("DATABASE_URL environment variable is not set!");
   }
 
-  // **هذا هو التعديل المهم**
   // الاتصال الداخلي في Railway لا يتطلب SSL
   return new pg.Pool({
     connectionString: databaseUrl,
-    ssl: false, // <-- قمنا بتعطيل SSL
+    ssl: false, // <-- تعطيل SSL
   });
 }
 
